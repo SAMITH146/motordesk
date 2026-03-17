@@ -1,0 +1,374 @@
+
+
+/* RESET Y BASE */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: var(--fuente);
+  text-decoration: none;
+  list-style: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--color-fondo);
+  color: var(--color-letra2);
+}
+
+.navbar {
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* =========================================================================
+   MAIN CONTENT AREA
+   ========================================================================= */
+
+.admin-main {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 40px;
+  background: var(--color-fondo);
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Títulos principales de sección */
+.admin-section__title {
+  color: var(--color-letra2);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.admin-section__subtitle {
+  color: var(--color-letra3);
+  font-size: 1rem;
+  margin-bottom: 30px;
+}
+
+/* =========================================================================
+   DASHBOARD CARDS (GRID)
+   ========================================================================= */
+
+.admin-dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.admin-card {
+  background: var(--subcard-bg);
+  border-radius: 15px;
+  padding: 25px;
+  border: 1px solid var(--color-borde-input2);
+  box-shadow: var(--sombra-subcard);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.admin-card:hover {
+  background: var(--subcard-bg-hover);
+  transform: translateY(-5px);
+  box-shadow: var(--sombra-subcard-hover);
+  border-color: var(--color-borde-card);
+}
+
+.admin-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.admin-card__title {
+  color: var(--color-letra3);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-card__icon {
+  font-size: 1.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--color-acento-primario);
+}
+
+.admin-card__value {
+  color: var(--color-letra2);
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.admin-card__link {
+  color: var(--color-acento-primario);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.3s;
+}
+
+.admin-card__link:hover {
+  color: var(--color-acento-hover);
+}
+
+/* =========================================================================
+   SECCIONES: TABLAS COMUNES (MECÁNICOS / PRODUCTOS)
+   ========================================================================= */
+
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-btn {
+  background-color: var(--color-boton);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.admin-btn:hover {
+  background-color: var(--color-boton-hover);
+  box-shadow: var(--glow-primario);
+}
+
+.admin-btn--danger {
+  background-color: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+}
+
+.admin-btn--danger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+}
+
+/* Contenedor de la tabla */
+.admin-table-container {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: auto; /* Scroll horizontal si es necesario */
+  box-shadow: var(--sombra-subcard);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table__head {
+  background-color: rgba(30, 41, 59, 0.8);
+}
+
+.admin-table__th {
+  padding: 15px 20px;
+  color: var(--color-letra3);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+  border-bottom: 2px solid var(--color-borde-input);
+}
+
+.admin-table__row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s;
+}
+
+.admin-table__row:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.admin-table__td {
+  padding: 15px 20px;
+  color: var(--color-letra2);
+  font-size: 0.95rem;
+}
+
+/* Badges de estado en tablas */
+.admin-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-badge--active {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399; /* Verde esmeralda */
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.admin-badge--inactive {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171; /* Rojo suave */
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.admin-badge--low-stock {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24; /* Ámbar */
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* Botones de acción dentro de la tabla */
+.admin-table__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-action-btn {
+  background: transparent;
+  border: 1px solid var(--color-borde-input);
+  color: var(--color-letra3);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+}
+
+.admin-action-btn:hover {
+  background: var(--color-borde-input);
+  color: var(--color-letra2);
+}
+
+.admin-action-btn--edit:hover {
+  border-color: var(--color-acento-primario);
+  color: var(--color-acento-primario);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.admin-action-btn--delete:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* =========================================================================
+   FORMULARIOS (SECCIÓN SEPARADA / ESTILO MODAL INLINE)
+   ========================================================================= */
+
+.admin-form-section {
+  background: var(--subcard-bg);
+  border-radius: 15px;
+  padding: 30px;
+  border: 1px solid var(--color-borde-input2);
+  box-shadow: var(--sombra-subcard);
+  margin-top: 40px;
+}
+
+.admin-form-section__title {
+  color: var(--color-letra2);
+  font-size: 1.3rem;
+  margin-bottom: 25px;
+  border-bottom: 1px solid var(--color-borde-input);
+  padding-bottom: 10px;
+}
+
+.admin-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.admin-form__group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Ocupar ambas columnas en el grid */
+.admin-form__group--full {
+  grid-column: 1 / -1;
+}
+
+.admin-form__label {
+  color: var(--color-letra3);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-form__input,
+.admin-form__select {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--color-borde-input);
+  padding: 12px 15px;
+  border-radius: 8px;
+  color: var(--color-letra2);
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.admin-form__input:focus,
+.admin-form__select:focus {
+  outline: none;
+  border-color: var(--color-acento-primario);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Evitar fondo blanco en selects oscuros en navegadores webkit */
+.admin-form__select option {
+  background-color: var(--color-fondo-navbar);
+  color: var(--color-letra2);
+}
+
+.admin-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+/* =========================================================================
+   RESPONSIVO AVANZADO
+   ========================================================================= */
+
+@media (max-width: 1024px) {
+  .admin-main {
+    padding: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    padding: 20px;
+  }
+
+  .admin-form {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+
+:root {
+    /* Fuente principal */
+    --fuente: 'Nunito', sans-serif;
+
+    /* Fondos principales */
+    --color-fondo: radial-gradient(circle at center, #0f172a 0%, #020617 70%, #0c1426 100%);
+    --color-fondo-segundario: rgba(241, 245, 249, 0.95);
+    --color-fondo-navbar: #0f172a;
+
+    /*  Gradientes*/
+    --card-gradient-1: linear-gradient(135deg, #1e3a5f 0%, #0f2744 100%);
+    --card-gradient-hover: linear-gradient(135deg, #234b7a 0%, #153555 100%);
+
+    /* Subcards - Tonos derivados más claros */
+    --subcard-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    --subcard-bg-hover: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+
+    /* Colores de acento */
+    --color-acento-primario: #3b82f6;
+    --color-acento-secundario: #06b6d4;
+    --color-acento-terciario: #8b5cf6;
+    --color-acento-hover: #22d3ee;
+
+    /* Glow effects */
+    --glow-primario: 0 0 20px rgba(59, 130, 246, 0.3);
+    --glow-hover: 0 0 30px rgba(34, 211, 238, 0.4);
+
+    /* Textos */
+    --color-letra1: #0f172a;
+    --color-letra2: #f8fafc;
+    --color-letra3: #94a3b8;
+    --color-letra-acento: #38bdf8;
+    --colortexto-hover: hsl(170, 94%, 51%);
+
+    /* Bordes */
+    --color-borde-input: #334155;
+    --color-borde-input2: rgba(255, 255, 255, 0.2);
+    --color-borde-card: rgba(59, 130, 246, 0.3);
+
+    /* Botones */
+    --color-boton: #3b82f6;
+    --color-boton-hover: #2563eb;
+
+    /* Sombras */
+    --sombra-card: 0 10px 40px rgba(0, 0, 0, 0.3), 0 0 1px rgba(59, 130, 246, 0.3);
+    --sombra-card-hover: 0 20px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(34, 211, 238, 0.2);
+    --sombra-subcard: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --sombra-subcard-hover: 0 8px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(59, 130, 246, 0.15);
+}

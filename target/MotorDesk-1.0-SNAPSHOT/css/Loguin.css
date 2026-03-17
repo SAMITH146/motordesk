@@ -1,0 +1,130 @@
+
+* {
+  font-family: var(--fuente);
+  cursor: default;
+  box-sizing: border-box;
+}
+
+/* CONTENEDOR GENERAL */
+.container-login {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* TARJETA LOGIN (Bloque) */
+.login {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  background-color: var(--color-fondo-segundario);
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* HEADER del login (Elemento) */
+.login__header {
+  text-align: center;
+}
+
+/* LOGO (Elemento) */
+.login__logo {
+  width: 120px;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px;
+}
+
+/* TÍTULO (Elemento) */
+.login__titulo {
+  font-size: 26px;
+  color: var(--color-letra1);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  border-bottom: 2px solid var(--color-borde-input);
+  padding-bottom: 5px;
+  text-align: center;
+}
+
+/* FORMULARIO (Elemento) */
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* GRUPO de campo (Elemento) */
+.login__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* LABEL (Elemento) */
+.login__label {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-letra1);
+  margin-left: 2px;
+}
+
+/* INPUT (Elemento) */
+.login__input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgb(0, 0, 0);
+  border-radius: 8px;
+  font-size: 17px;
+  outline: none;
+  transition: 0.3s ease;
+  background-color: var(--color-fondo-input, #fff);
+}
+
+.login__input:focus {
+  border-color: var(--color-boton);
+  box-shadow: 0 0 5px var(--color-boton);
+}
+
+/* BOTÓN (Elemento) */
+.login__boton {
+  width: 100%;
+  padding: 12px 20px;
+  border: solid black 1px;
+  border-radius: 8px;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+  background-color: var(--color-boton);
+  color: #fff;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.login__boton:hover {
+  background-color: var(--color-principal-hover);
+}
+
+/* RESPONSIVO */
+@media (max-width: 480px) {
+  .login {
+    padding: 25px;
+  }
+
+  .login__titulo {
+    font-size: 22px;
+  }
+
+  .login__input {
+    font-size: 15px;
+  }
+
+  .login__logo {
+    width: 95px;
+  }
+}
