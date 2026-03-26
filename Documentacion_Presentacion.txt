@@ -1,0 +1,56 @@
+==================================================
+DOCUMENTACIÓN DE PRESENTACIÓN - MotorDesk
+==================================================
+
+1. ARQUITECTURA DEL PROYECTO (Patrón MVC)
+El proyecto "MotorDesk" está estructurado bajo el patrón de diseño MVC (Modelo-Vista-Controlador) utilizando tecnología Java Enterprise Edition (JSP y Servlets). Este patrón moderno divide el código de la aplicación de manera limpia en tres capas lógicas:
+
+- VISTAS (Views - Archivos JSP y CSS): Archivos de interfaz de usuario que procesan el HTML de manera dinámica en el servidor. (Ej. `login.jsp`, `gestionarMecanicos.jsp`, `panelMecanico.jsp`).
+- CONTROLADORES (Controllers - Servlets Java): Archivos Java dedicados a recibir las peticiones web del usuario desde las Vistas, interpretar los datos, ejecutar los DAOs correspondientes y enviar la respuesta. (Ej. `LoginController.java`).
+- MODELOS y DAOs (Data Access Objects): Clases puras de Java que representan los objetos de la vida real en código (Ej. `Empleado.java`, `Producto.java`) y DAOs que albergan exclusivamente los Queries y Conexiones a la Base de Datos sin mezclar SQL en los demás archivos.
+
+---
+
+2. FLUJO DE TRABAJO (¿Cómo explicar la ejecución técnica en la presentación?)
+Cuando vayas a exponer el código, puedes usar el "Login" como tu ejemplo demostrativo de cómo fluyen los datos en el sistema MVC:
+1. El usuario entra a `login.jsp` e ingresa un PIN con su teclado.
+2. El botón de enviar hace un "POST" HTTP que es atajado por el Servlet controlador `LoginController`.
+3. El `LoginController` delega el trabajo pesado a la base de datos invocando al método `loginPorPin()` perteneciente a `EmpleadoDAO`.
+4. El DAO ejecuta un Query seguro "SELECT" en MySQL. Si dicho PIN existe, rellena los datos en un Objeto "Modelo" de tipo `Empleado` y se lo devuelve al Controlador original.
+5. El Controlador verifica las propiedades del Objeto retornado, como su `id_rol` (1 siendo Administrador, 2 siendo Mecánico). 
+6. Finalmente, el Controlador habilita el acceso inyectando ese empleado de manera global dentro de una sesión de servidor (`HttpSession`) y realiza una redirección (`response.sendRedirect`) hacia el Panel apropiado. Si el empleado es nulo, expulsa el login informando al JSP para que muestre tarjetas de error estéticas pintadas de rojo mediante atributos `.setAttribute()`.
+
+---
+
+3. OBJETOS PRINCIPALES DESARROLLADOS Y SUS FUNCIONES
+
+[MODELO] Empleado.java
+Representa la plantilla en Java de un empleado real de MotorDesk. 
+Sus atributos principales encapsulados (Protegidos, con métodos Get y Set) incluyen: idEmpleado (para almacenar documentos reales. Está modelado matemáticamente como Variable 'Long', lo cual es crucial para soportar cédulas de 10 o más dígitos sin romper la memoria máxima de un Integer en Java), nombre, pin, idRol, idCargo, estadoEmpleado, y fechaIngreso.
+
+[DAO] EmpleadoDAO.java
+Es el nexo maestro entre Java y la BD para todo lo relativo a usuarios. 
+- loginPorPin(String pin): Retorna el Objeto de tipo empleado al controlador solo en la condición estricta de que el registro exista, se envíe el PIN correcto de forma recortada (TRIM) y el estado sea rígidamente "ACTIVO".
+- insertar(Empleado emp): Procesa sentencias seguras "Prepared Statements" (previniendo inyecciones o hackeos en la web) con un "INSERT" creando el usuario con la fecha del propio servidor de base de datos (`CURDATE()`).
+- listarMecanicos(): Llama de regreso una lista tipo `ArrayList<Empleado>` estructurada extrayendo a exclusivamente todos los usuarios que cuenten con el cargo laboral catalogado como FK Mecánico (`id_rol_fk = 2`); esto es vital para rellenar las grillas visuales y las tablas HTML de las vistas.
+
+[CONTROLADOR] LoginController.java
+Funciona como el guardia de seguridad de la corporación.
+Evita el acceso de pines inválidos y cuenta con defensas extra y excepciones de código, impidiendo el ingreso mediante bloqueos silenciosos (o redirecciones con banners estéticos de error ⚠️) si algún usuario intenta abusar del login mediante privilegios no definidos o nulos. Configura además, el cargado rápido estático al acceder a los dashboard generales.
+
+[CONTROLADOR] MecanicoController.java
+Gestiona netamente el flujo administrativo del entorno mecánico.
+- método doGet(): Ejecuta pasivamente la solicitud a `EmpleadoDAO.listarMecanicos()` e incrusta los datos sobre la variable `"listaMecanicos"` del lado del servidor JSP para que la tabla pueda generar filas `<c:forEach>` automáticas en caso de haber datos.
+- método doPost(): Encargado de absorber masivamente los datos del formulario "Agregar Mecánico". Lanza una conversión predeterminada hacia el valor "2" (Mecánico Rol) para asegurar la integridad jerárquica, inserta al usuario a través del DAO y finalmente obliga la vista a recargar su panel y refrescar su tabla en microsegundos y mostrar el nuevo empleado de manera dinámica.
+
+---
+
+4. DETALLES SOBRESALIENTES DE INTERFAZ Y DISEÑO FRONT-END (HTML / CSS)
+- CSS Desacoplado (Buenas prácticas): En lugar de código "espagueti" incrustado en los JSPs, el diseño aprovecha la filosofía BEM (Block Element Modifier), organizándose inteligentemente con CSS puro externalizado por funcionalidades lógicas: `variables.css` (para mantener la paleta de colores global y responsiva del taller), `estilos.css`, y `Loguin.css` individualmente conectados al head.
+- Tecnología Glassmorphism Moderno: Nos deshicimos de botones o contenedores básicos de colores planos opacos; en su lugar, implementamos técnicas "CSS Backdrop Filter Blur". Lo que hace esto es desenfocar inteligentemente los contenidos traseros (como emular hojas de cristal oscuras súper elegantes), dándole un matiz de corporatividad y alto impacto estético visual premium que eleva muchísimo la jerarquía del aplicativo de la vida real.
+- Optimizaciones de Caché: En el login fuimos audaces al implementar variables anti-caché (`?v=XX`) de forma de que forzamos de que todos los usuarios que entren a la web siempre descarguen el estilo dinámico sin temor a observar una versión de diseño pasada a causa de que su navegador de internet evadió la descarga del nuevo estilo.
+- Componentes Nativos: Rechazamos las alertas comunes en Javascript del navegador reemplazándolas por "Divs" estéticamente renderizados, vibrantes, asimétricos, de colores de alarma potentes que reaccionan pasivamente mediante Keyframes de animación a los inputs incorrectos (ej, temblor cuando se equivoquen con alertas centreadas con Emojis para reducir carga o estrés a nivel del explorador web del cliente).
+
+==================================================
+DOCUMENTO GENERADO A SOLICITUD PARA EXPLICACIÓN
+==================================================

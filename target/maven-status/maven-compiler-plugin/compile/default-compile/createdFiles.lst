@@ -1,11 +1,14 @@
 com\mycompany\motordesk\controller\TestConexionServlet.class
-com\mycompany\motordesk\controller\LoginController.class
+com\mycompany\motordesk\model\producto.class
 com\mycompany\motordesk\resources\JavaEE8Resource.class
 com\mycompany\motordesk\controller\MecanicoController.class
+com\mycompany\motordesk\dao\PanelMecanicoDAO.class
 com\mycompany\motordesk\controller\EmpleadoController.class
 com\mycompany\motordesk\controller\LogoutController.class
-com\mycompany\motordesk\model\Empleado.class
+com\mycompany\motordesk\controller\PanelMecanicoController.class
 model\Rol.class
+com\mycompany\motordesk\controller\LoginController.class
+com\mycompany\motordesk\model\Empleado.class
 com\mycompany\motordesk\config\Conexion.class
 com\mycompany\motordesk\dao\EmpleadoDAO.class
 com\mycompany\motordesk\JAXRSConfiguration.class

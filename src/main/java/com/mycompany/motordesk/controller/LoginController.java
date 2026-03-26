@@ -44,13 +44,19 @@ public class LoginController extends HttpServlet {
             else if (emp.getIdRol() == 2) {
 
                 response.sendRedirect(
-                        request.getContextPath() + "/mecanico/panelMecanico.jsp"
+                        request.getContextPath() + "/Mecanico/panelMecanico.jsp"
                 );
+            }
+            // ================= OTROS ROLES O ROL NULO =================
+            else {
+                request.setAttribute("mensajeError", "Error: Rol no válido asignado a este usuario (" + emp.getIdRol() + ").");
+                request.getRequestDispatcher("login.jsp")
+                        .forward(request, response);
             }
 
         } else {
 
-            request.setAttribute("mensajeError", "PIN incorrecto");
+            request.setAttribute("mensajeError", "PIN NO ASOCIADO A NINGÚN ADMIN O MECÁNICO");
             request.getRequestDispatcher("login.jsp")
                     .forward(request, response);
         }

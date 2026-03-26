@@ -13,6 +13,15 @@ import javax.servlet.http.*;
 public class MecanicoController extends HttpServlet {
 
     @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        EmpleadoDAO dao = new EmpleadoDAO();
+        request.setAttribute("listaMecanicos", dao.listarMecanicos());
+        request.getRequestDispatcher("/Mecanico/gestionarMecanicos.jsp").forward(request, response);
+    }
+
+    @Override
     protected void doPost(HttpServletRequest request,
             HttpServletResponse response)
             throws ServletException, IOException {
@@ -41,9 +50,9 @@ public class MecanicoController extends HttpServlet {
 
             System.out.println("INSERTADO: " + ok);
 
-            // ✅ volver al panel
+            // ✅ volver al panel de mecanicos con la nueva lista actualizada
             response.sendRedirect(
-                    request.getContextPath() + "/admin/panelAdmin.jsp"
+                    request.getContextPath() + "/MecanicoController"
             );
 
         } catch (Exception e) {

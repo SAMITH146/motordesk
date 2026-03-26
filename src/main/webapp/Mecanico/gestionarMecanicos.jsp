@@ -1,35 +1,191 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Gestionar Mecánicos</title>
-    </head>
-    <body>
+    <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+        <!DOCTYPE html>
+        <html lang="es">
 
-        <h2>Registrar Mecánico</h2>
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/variables.css" />
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css" />
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/navbar.css" />
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-panel.css" />
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-mecanicos.css" />
+            <title>Gestión de Mecánicos | MotorDesk</title>
+        </head>
 
-        <form action="${pageContext.request.contextPath}/MecanicoController" method="post">
+        <body>
+            <header class="navbar">
+                <div class="navbar__logo">
+                    <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk"
+                        class="navbar__logo-img" />
+                </div>
 
-            <label>Documento:</label><br>
-            <input type="number" name="doc_emple" required step="1" min="0">
+                <nav class="navbar__menu" aria-label="Menu principal">
+                    <a href="${pageContext.request.contextPath}/pages/admin.jsp" class="navbar__menu-item">Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Mecanico/gestionarMecanicos.jsp"
+                        class="navbar__menu-item active">Mecánicos</a>
+                    <a href="${pageContext.request.contextPath}/pages/admin_productos.jsp"
+                        class="navbar__menu-item">Productos</a>
+                    <a href="${pageContext.request.contextPath}/pages/admin_ordenes.jsp"
+                        class="navbar__menu-item">Órdenes</a>
+                </nav>
 
-            <label>Nombre:</label><br>
-            <input type="text" name="nom_empleado" required><br><br>
+                <div class="navbar__session">
+                    <div class="navbar__user-info">
+                        <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
 
-            <label>PIN:</label><br>
-            <input type="password" name="pin_acceso" maxlength="10" required><br><br>
+                    </div>
+                    <a href="${pageContext.request.contextPath}/LogoutController" class="navbar__session-btn">
+                        <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png"
+                            alt="Cerrar sesión" class="navbar__session-icon" />
+                    </a>
+                </div>
+            </header>
 
-            <!-- ocultos porque el admin crea mecánicos -->
-            <input type="hidden" name="id_rol_fk" value="2">
-            <input type="hidden" name="id_cargo_fk" value="2">
+            <main class="admin-main fade-in">
+                <section id="mecanicos" class="admin-section">
+                    <header>
+                        <h2 class="admin-section__title">Gestión de Mecánicos</h2>
+                        <p class="admin-section__subtitle">Administra los usuarios pertenecientes al taller.</p>
+                    </header>
 
-            <button type="submit">Guardar Mecánico</button>
+                    <div class="admin-toolbar">
+                        <button type="button" class="admin-btn"
+                            onclick="window.location.hash='#formMecanico';">
+                            <span>+</span> Agregar Mecánico
+                        </button>
+                    </div>
 
-        </form>
+                    <div class="admin-table-container">
+                        <table class="admin-table">
+                            <thead class="admin-table__head">
+                                <tr>
+                                    <th class="admin-table__th">Documento</th>
+                                    <th class="admin-table__th">Nombres</th>
+                                    <th class="admin-table__th">Cargo</th>
+                                    <th class="admin-table__th">Fecha Ingreso</th>
+                                    <th class="admin-table__th">Estado</th>
+                                    <th class="admin-table__th">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty requestScope.listaMecanicos}">
+                                        <c:forEach var="mecanico" items="${requestScope.listaMecanicos}">
+                                            <tr class="admin-table__row">
+                                                <td class="admin-table__td">
+                                                    <c:out value="${mecanico.idEmpleado}" />
+                                                </td>
+                                                <td class="admin-table__td">
+                                                    <c:out value="${mecanico.nombre}" />
+                                                </td>
+                                                <td class="admin-table__td">
+                                                    <c:choose>
+                                                        <c:when test="${mecanico.idCargo == 1}">Administrador</c:when>
+                                                        <c:when test="${mecanico.idCargo == 2}">Mecánico</c:when>
+                                                        <c:otherwise>Desconocido</c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td class="admin-table__td">
+                                                    <c:out value="${mecanico.fechaIngreso}" />
+                                                </td>
+                                                <td class="admin-table__td">
+                                                    <c:choose>
+                                                        <c:when test="${mecanico.estadoEmpleado == 'ACTIVO'}">
+                                                            <span class="admin-badge admin-badge--active">Activo</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span
+                                                                class="admin-badge admin-badge--inactive">Inactivo</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td class="admin-table__td">
+                                                    <div class="admin-table__actions">
+                                                        <form
+                                                            action="${pageContext.request.contextPath}/MecanicoController"
+                                                            method="post" class="admin-action-form">
+                                                            <input type="hidden" name="action" value="edit">
+                                                            <input type="hidden" name="id" value="${mecanico.idEmpleado}">
+                                                            <button type="submit"
+                                                                class="admin-action-btn admin-action-btn--edit"
+                                                                title="Editar">✏️ Editar</button>
+                                                        </form>
+                                                        <form
+                                                            action="${pageContext.request.contextPath}/MecanicoController"
+                                                            method="post" class="admin-action-form">
+                                                            <input type="hidden" name="action" value="toggleState">
+                                                            <input type="hidden" name="id" value="${mecanico.idEmpleado}">
+                                                            <c:choose>
+                                                                <c:when test="${mecanico.estadoEmpleado == 'ACTIVO'}">
+                                                                    <button type="submit"
+                                                                        class="admin-action-btn admin-action-btn--delete"
+                                                                        title="Desactivar">🚫 Desactivar</button>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <button type="submit"
+                                                                        class="admin-action-btn admin-action-btn--active"
+                                                                        title="Activar">✅ Activar</button>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr class="admin-table__row">
+                                            <td class="admin-table__td" colspan="6" style="text-align: center;">No hay
+                                                mecánicos registrados.</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
 
+                    <article id="formMecanico" class="admin-form-section">
+                        <h3 class="admin-form-section__title">Registrar Mecánico</h3>
+                        <form class="admin-form" action="${pageContext.request.contextPath}/MecanicoController"
+                            method="post">
 
+                            <div class="admin-form__group">
+                                <label class="admin-form__label" for="doc_emple">Documento:</label>
+                                <input class="admin-form__input" type="number" id="doc_emple" name="doc_emple" required
+                                    step="1" min="0" placeholder="Ej: 12345678">
+                            </div>
 
+                            <div class="admin-form__group">
+                                <label class="admin-form__label" for="nom_empleado">Nombre:</label>
+                                <input class="admin-form__input" type="text" id="nom_empleado" name="nom_empleado"
+                                    required placeholder="Nombre y Apellidos">
+                            </div>
 
-    </body>
-</html>
+                            <div class="admin-form__group">
+                                <label class="admin-form__label" for="pin_acceso">PIN:</label>
+                                <input class="admin-form__input" type="password" id="pin_acceso" name="pin_acceso"
+                                    maxlength="10" required placeholder="Ingrese 10 dígitos">
+                            </div>
+
+                            <!-- Ocultos porque el admin crea mecánicos -->
+                            <input type="hidden" name="id_rol_fk" value="2">
+                            <input type="hidden" name="id_cargo_fk" value="2">
+
+                            <div class="admin-form__actions">
+                                <button type="reset" class="admin-btn admin-btn--danger">Limpiar</button>
+                                <button type="submit" class="admin-btn">Guardar Mecánico</button>
+                            </div>
+
+                        </form>
+                    </article>
+                </section>
+
+                <footer class="admin-footer">
+                    <p>&copy; 2024 MotorDesk Web System. Todos los derechos reservados.</p>
+                </footer>
+            </main>
+        </body>
+
+        </html>

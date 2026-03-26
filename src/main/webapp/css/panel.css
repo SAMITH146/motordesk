@@ -12,10 +12,9 @@
   border-radius: 20px;
   box-shadow: 0 4px 12px rgb(9, 44, 85);
   padding: 30px;
-  margin: 40px auto;
+  margin: 0 auto 40px;
   display: flex;
   flex-direction: column;
-  margin-top: 160px;
 }
 
 .grafica {
@@ -108,8 +107,6 @@
 /* Tablets */
 @media (max-width: 992px) {
   .container-grafica {
-
-    padding: 25px;
     padding: 25px;
     max-width: 90%;
   }
@@ -126,8 +123,6 @@
 /* Móviles */
 @media (max-width: 768px) {
   .container-grafica {
-    margin-top: 80px;
-    padding: 20px;
     padding: 20px;
     max-width: 95%;
   }

@@ -23,7 +23,7 @@ public class EmpleadoDAO {
             if (rs.next()) {
 
                 emp = new Empleado();
-                emp.setIdEmpleado(rs.getInt("doc_emple"));
+                emp.setIdEmpleado(rs.getLong("doc_emple"));
                 emp.setNombre(rs.getString("nom_empleado"));
                 emp.setPin(rs.getString("pin_acceso"));
                 emp.setIdRol(rs.getInt("id_rol_fk"));
@@ -64,5 +64,28 @@ public class EmpleadoDAO {
         }
 
         return registrado;
+    }
+
+    public java.util.List<Empleado> listarMecanicos() {
+        java.util.List<Empleado> lista = new java.util.ArrayList<>();
+        try (Connection con = Conexion.getConexion()) {
+            String sql = "SELECT * FROM empleado WHERE id_rol_fk = 2";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Empleado emp = new Empleado();
+                emp.setIdEmpleado(rs.getLong("doc_emple"));
+                emp.setNombre(rs.getString("nom_empleado"));
+                emp.setPin(rs.getString("pin_acceso"));
+                emp.setIdRol(rs.getInt("id_rol_fk"));
+                emp.setIdCargo(rs.getInt("id_cargo_fk"));
+                emp.setEstadoEmpleado(rs.getString("estado_empleado"));
+                emp.setFechaIngreso(rs.getDate("fecha_ingreso"));
+                lista.add(emp);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return lista;
     }
 }
