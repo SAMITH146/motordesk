@@ -24,7 +24,7 @@
                 <nav class="navbar__menu" aria-label="Menu principal">
                     <a href="${pageContext.request.contextPath}/pages/admin.jsp"
                         class="navbar__menu-item active">Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Mecanico/gestionarMecanicos.jsp"
+                    <a href="${pageContext.request.contextPath}/MecanicoController"
                         class="navbar__menu-item">Mecánicos</a>
                     <a href="${pageContext.request.contextPath}/pages/admin_productos.jsp"
                         class="navbar__menu-item">Productos</a>
@@ -61,7 +61,7 @@
                                 <c:out
                                     value="${not empty requestScope.totalMecanicos ? requestScope.totalMecanicos : '0'}" />
                             </div>
-                            <a href="${pageContext.request.contextPath}/pages/admin_mecanicos.jsp"
+                            <a href="${pageContext.request.contextPath}/MecanicoController"
                                 class="admin-card__link">Gestionar Mecánicos →</a>
                         </article>
 
