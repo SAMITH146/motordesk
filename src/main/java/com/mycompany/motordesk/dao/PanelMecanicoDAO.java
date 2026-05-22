@@ -1,7 +1,7 @@
 package com.mycompany.motordesk.dao;
 
 import com.mycompany.motordesk.config.Conexion;
-import com.mycompany.motordesk.model.producto;
+import com.mycompany.motordesk.model.Producto;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,103 +10,53 @@ import java.util.List;
 
 public class PanelMecanicoDAO {
 
-    public List<producto> obtenerStockBajo() {
-
-        List<producto> lista = new ArrayList<>();
-
-        String sql = "SELECT nombre, categoria, stock " +
-                "FROM producto WHERE stock < 10";
-
+    public List<Producto> obtenerStockBajo() {
+        List<Producto> lista = new ArrayList<>();
+        String sql = "SELECT * FROM producto WHERE stock < 5 LIMIT 5";
         try (Connection con = Conexion.getConexion();
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-
-                producto p = new producto();
-
-                p.setNombre(rs.getString("nombre"));
-                p.setcategoria(rs.getString("categoria"));
-                p.setstock(rs.getInt("stock"));
-
+                Producto p = new Producto();
+                p.setIdProducto(rs.getInt("id_producto"));
+                p.setNombreProducto(rs.getString("nombre"));
+                p.setStock(rs.getInt("stock"));
                 lista.add(p);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return lista;
     }
 
-    // ===== METODOS PARA LA GRAFICA Y RESUMEN (ATADOS A BD) =====
-
-    public int alturaDia(int diaSemana) {
-        double totalDelDia = 0;
-        // La meta monetaria diaria para llenar la barra al 100% (puedes cambiarla)
-        double maximoEsperado = 1000000.0;
-
-        // diaSemana desde JSP: 1=Lunes, 2=Martes ... 6=Sabado
-        // MySQL DAYOFWEEK: 1=Domingo, 2=Lunes, 3=Martes ... 7=Sabado
-        int diaMysql = diaSemana + 1;
-
-        // Asumo que la columna de fecha se llama "fecha" (si es otra cambiala aqui
-        // abajo)
-        String sql = "SELECT COALESCE(SUM(monto), 0) FROM pago WHERE DAYOFWEEK(fecha) = ? AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)";
-
-        try (Connection con = Conexion.getConexion();
-                PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setInt(1, diaMysql);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    totalDelDia = rs.getDouble(1);
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Error al intentar sumar la altura del dia. Verifica el nombre de las columnas.");
-            e.printStackTrace();
-        }
-
-        // Calcula porcentaje de altura
-        double porcentaje = (totalDelDia / maximoEsperado) * 100;
-        if (porcentaje > 100)
-            porcentaje = 100; // Tope maximo de barra 100%
-
-        return (int) Math.round(porcentaje);
-    }
-
-    public int totalServicios() {
+    public int contarOrdenesAbiertas(String docMecanico) {
         int total = 0;
-        String sql = "SELECT COUNT(*) FROM pago"; // Conteo basico por ahora
+        String sql = "SELECT COUNT(*) FROM ordentrabajo WHERE doc_emple_fk = ? AND estado = 'ABIERTA'";
         try (Connection con = Conexion.getConexion();
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                total = rs.getInt(1);
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, docMecanico);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) total = rs.getInt(1);
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
         return total;
     }
 
-    public int totalOrdenes() {
-        return totalServicios(); // Mismo total por ahora
-    }
-
-    public String totalDinero() {
-        double total = 0;
-        String sql = "SELECT COALESCE(SUM(monto), 0) FROM pago";
+    public int contarOrdenesHoy(String docMecanico) {
+        int total = 0;
+        // Diagram uses 'fecha' DATE
+        String sql = "SELECT COUNT(*) FROM ordentrabajo WHERE doc_emple_fk = ? AND fecha = CURRENT_DATE";
         try (Connection con = Conexion.getConexion();
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                total = rs.getDouble(1);
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, docMecanico);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) total = rs.getInt(1);
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        // Formatea el numero con puntos de miles (ej: 3.500.000)
-        return String.format(java.util.Locale.GERMAN, "%,.0f", total);
+        return total;
     }
 }

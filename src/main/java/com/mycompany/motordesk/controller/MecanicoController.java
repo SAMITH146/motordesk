@@ -4,7 +4,6 @@ import com.mycompany.motordesk.dao.EmpleadoDAO;
 import com.mycompany.motordesk.model.Empleado;
 
 import java.io.IOException;
-import java.io.IOException;
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
@@ -21,7 +20,7 @@ public class MecanicoController extends HttpServlet {
         String action = request.getParameter("action");
         if ("edit".equals(action)) {
             try {
-                Long id = Long.parseLong(request.getParameter("id"));
+                String id = request.getParameter("id");
                 Empleado emp = dao.obtenerPorId(id);
                 request.setAttribute("empleadoEditar", emp);
             } catch (Exception e) {
@@ -43,7 +42,7 @@ public class MecanicoController extends HttpServlet {
 
         try {
             if ("toggleState".equals(action)) {
-                Long id = Long.parseLong(request.getParameter("id"));
+                String id = request.getParameter("id");
                 EmpleadoDAO dao = new EmpleadoDAO();
                 boolean ok = dao.toggleEstado(id);
                 if (ok) {
@@ -55,7 +54,7 @@ public class MecanicoController extends HttpServlet {
                 // Future edit logic
                 System.out.println("EDIT_ACTION_RECEIVED");
             } else if ("delete".equals(action)) {
-                Long id = Long.parseLong(request.getParameter("id"));
+                String id = request.getParameter("id");
                 EmpleadoDAO dao = new EmpleadoDAO();
                 boolean ok = dao.eliminar(id);
                 if (ok) {
@@ -69,7 +68,7 @@ public class MecanicoController extends HttpServlet {
             } else if ("update".equals(action)) {
                 // Actualizar mecánico existente
                 Empleado emp = new Empleado();
-                emp.setIdEmpleado(Long.parseLong(request.getParameter("doc_emple")));
+                emp.setIdEmpleado(request.getParameter("doc_emple"));
                 emp.setNombre(request.getParameter("nom_empleado"));
                 emp.setPin(request.getParameter("pin_acceso"));
                 emp.setIdRol(Integer.parseInt(request.getParameter("id_rol_fk")));
@@ -90,9 +89,7 @@ public class MecanicoController extends HttpServlet {
                 // Registrar nuevo mecánico
                 Empleado emp = new Empleado();
 
-                emp.setIdEmpleado(
-                        Long.parseLong(request.getParameter("doc_emple"))
-                );
+                emp.setIdEmpleado(request.getParameter("doc_emple"));
 
                 emp.setNombre(request.getParameter("nom_empleado"));
                 emp.setPin(request.getParameter("pin_acceso"));

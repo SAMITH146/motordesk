@@ -1,34 +1,69 @@
 package com.mycompany.motordesk.model;
 
-public class producto {
-
-    private String nombre;
-    private String categoria;
+public class Producto {
+    private int idProducto;
+    private String nombreProducto;
     private int stock;
+    private double precioUnitario;
+    private String estado;
+    private String tipoVehiculo;
+    private String seccion;
 
-    // getters y setters
-    public String getNombre() {
-        return nombre;
+    public Producto() {}
+
+    public int getIdProducto() {
+        return idProducto;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setIdProducto(int idProducto) {
+        this.idProducto = idProducto;
     }
 
-    public String getcategoria() {
-        return categoria;
+    public String getNombreProducto() {
+        return nombreProducto;
     }
 
-    public void setcategoria(String categoria) {
-        this.categoria = categoria;
+    public void setNombreProducto(String nombreProducto) {
+        this.nombreProducto = nombreProducto;
     }
 
-    public int getstock() {
+    public int getStock() {
         return stock;
     }
 
-    public void setstock(int stock) {
+    public void setStock(int stock) {
         this.stock = stock;
+    }
 
+    public double getPrecioUnitario() {
+        return precioUnitario;
+    }
+
+    public void setPrecioUnitario(double precioUnitario) {
+        this.precioUnitario = precioUnitario;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getTipoVehiculo() {
+        return tipoVehiculo;
+    }
+
+    public void setTipoVehiculo(String tipoVehiculo) {
+        this.tipoVehiculo = tipoVehiculo;
+    }
+
+    public String getSeccion() {
+        return seccion;
+    }
+
+    public void setSeccion(String seccion) {
+        this.seccion = seccion;
     }
 }
