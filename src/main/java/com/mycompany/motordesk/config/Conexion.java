@@ -9,7 +9,7 @@ public class Conexion {
         "jdbc:mysql://localhost:3306/motordesk?useSSL=false&serverTimezone=UTC";
 
     private static final String USER = "root";
-    private static final String PASSWORD ="COMPUTER.777";
+    private static final String PASSWORD ="#Aprendiz2024";
 
     public static Connection getConexion() {
 

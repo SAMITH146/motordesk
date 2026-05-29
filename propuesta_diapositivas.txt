@@ -1,0 +1,133 @@
+================================================================================
+PROPUESTA DE DIAPOSITIVAS: PRESENTACIÓN DE MOTORDESK
+================================================================================
+
+Este documento contiene la estructura detallada y los textos sugeridos para que los copies directamente a tus diapositivas de PowerPoint. 
+
+Cada diapositiva incluye:
+- TÍTULO: Lo que va arriba en la diapositiva.
+- CONTENIDO VISUAL / PUNTOS CLAVE: El texto resumido que debe ver la audiencia (no los satures con demasiado texto).
+- NOTAS DEL EXPOSITOR: Lo que tú debes decir oralmente mientras se muestra esa diapositiva.
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 1: Portada (Título de la Presentación)
+--------------------------------------------------------------------------------
+[TÍTULO] 
+MotorDesk: Sistema de Gestión Eficiente para Talleres Mecánicos
+
+[SUBTÍTULO]
+Desarrollo bajo arquitectura MVC, diseño web premium y administración de personal técnica.
+
+[CONTENIDO VISUAL]
+- Integrantes del equipo de desarrollo.
+- Tecnologías clave: Java EE (JSP & Servlets) + MySQL.
+- Logotipo o imagen del sistema (Glassmorphism de fondo).
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"Buenos días a todos. Hoy les presentaremos MotorDesk, una aplicación web diseñada específicamente para optimizar y controlar la administración interna en talleres mecánicos. El sistema ha sido construido bajo altos estándares de arquitectura de software en Java y cuenta con una interfaz de usuario moderna diseñada para brindar una excelente experiencia."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 2: Definición del Problema
+--------------------------------------------------------------------------------
+[TÍTULO]
+Desafíos Comunes en la Gestión de Talleres
+
+[CONTENIDO VISUAL (Iconos o viñetas cortas)]
+- Descontrol en la asignación y registro de mecánicos.
+- Sistemas obsoletos con interfaces complejas y poco intuitivas.
+- Falta de seguridad básica en los accesos del personal al sistema.
+- Procesos lentos de carga que retrasan la operación diaria.
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"En el día a día de un taller mecánico, la rapidez y la organización son vitales. Muchos talleres aún registran a su personal de forma manual o usan software obsoleto con interfaces difíciles de usar y sin medidas de seguridad. Esto genera errores, pérdida de datos y lentitud en la atención al cliente."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 3: La Solución: MotorDesk
+--------------------------------------------------------------------------------
+[TÍTULO]
+¿Qué es MotorDesk?
+
+[CONTENIDO VISUAL]
+- Una plataforma web ágil y robusta para la administración de personal y flujos del taller.
+- Seguridad simplificada: Acceso rápido de mecánicos y administradores mediante un PIN único.
+- Interfaz moderna y premium: Centrada en facilitar el trabajo diario del administrador.
+- Modularidad: Código estructurado y fácil de mantener.
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"Como respuesta a estos problemas, creamos MotorDesk. Es una solución web robusta pero muy intuitiva. En lugar de contraseñas largas y complejas, el personal puede ingresar rápidamente mediante un PIN único y seguro. La aplicación automatiza tareas administrativas como la gestión de mecánicos y ofrece una interfaz moderna que reduce el estrés visual."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 4: Arquitectura del Proyecto (Patrón MVC)
+--------------------------------------------------------------------------------
+[TÍTULO]
+Arquitectura Limpia: Patrón MVC
+
+[CONTENIDO VISUAL (Esquema conceptual)]
+- VISTAS (JSP + CSS): Interfaz dinámica e independiente (Ej. login.jsp, gestionarMecanicos.jsp).
+- CONTROLADORES (Servlets): Lógica intermedia y direccionamiento seguro (Ej. LoginController.java).
+- MODELOS y DAOs (Java + SQL): Representación de datos y consultas seguras (Ej. Empleado.java, EmpleadoDAO.java).
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"Para garantizar la escalabilidad de la aplicación, implementamos el patrón de diseño MVC (Modelo-Vista-Controlador). Esto divide limpiamente el código: la interfaz gráfica (Vista) es independiente de la lógica de negocio (Controlador), la cual a su vez se comunica con la base de datos de manera segura mediante los objetos de acceso a datos (Modelos y DAOs). Así, si requerimos cambiar el diseño visual, no afectamos las consultas ni la base de datos."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 5: Demostración Técnica: Flujo de Login
+--------------------------------------------------------------------------------
+[TÍTULO]
+Flujo de Datos en el Sistema (Caso: Login por PIN)
+
+[CONTENIDO VISUAL (Diagrama de pasos rápidos)]
+1. VISTA: Usuario digita su PIN en 'login.jsp'.
+2. CONTROLADOR: 'LoginController' recibe la solicitud vía HTTP POST.
+3. DAO: Llama a 'EmpleadoDAO.loginPorPin()' para buscar en MySQL.
+4. MODELO: Si existe y está ACTIVO, se construye un objeto 'Empleado'.
+5. SESIÓN: El controlador guarda al empleado en la sesión del servidor (HttpSession) y lo redirige a su Dashboard.
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"Queremos mostrarles técnicamente cómo fluyen los datos en MotorDesk tomando como ejemplo el inicio de sesión. Cuando un empleado digita su PIN, la petición viaja a un Servlet controlador. Este le pide al DAO que haga un query seguro en la base de datos. Si el PIN coincide y el empleado está en estado 'Activo', se crea un objeto en memoria y se abre una sesión segura de servidor, redirigiendo al usuario a su panel correspondiente según su rol: Administrador o Mecánico."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 6: Gestión de Personal (Módulo de Mecánicos)
+--------------------------------------------------------------------------------
+[TÍTULO]
+Administración del Personal Técnico
+
+[CONTENIDO VISUAL]
+- Listados Dinámicos: Extracción mediante FK (id_rol_fk = 2).
+- Seguridad en BD: Uso de Prepared Statements para evitar ataques de Inyección SQL.
+- Integridad de Datos: Validación automática del tipo de variable (Ej. ID Empleado como Long para soportar cédulas largas).
+- Creación rápida: Registro ágil con fecha automatizada desde el servidor de base de datos.
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"El sistema permite administrar la grilla de mecánicos de forma dinámica. Hacemos consultas seguras filtrando exclusivamente por el rol de mecánico. Un detalle técnico importante es que el ID de empleado está modelado como una variable de tipo 'Long' en Java. Esto es crucial porque nos permite registrar documentos de identidad largos (de 10 o más dígitos) sin que ocurran desbordamientos de memoria en el servidor."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 7: Diseño Front-End Premium y Moderno
+--------------------------------------------------------------------------------
+[TÍTULO]
+Experiencia de Usuario (UX) de Alto Impacto
+
+[CONTENIDO VISUAL]
+- CSS Desacoplado: Filosofía BEM (Block Element Modifier) para un código limpio.
+- Glassmorphism (Efecto Cristal): Uso de 'backdrop-filter: blur' para un estilo visual muy elegante.
+- Animaciones Micro-interactivas: Tarjetas de error animadas (efecto de temblor en inputs inválidos).
+- Anti-Caché en Estilos: Carga dinámica con versión (?v=1.x) para garantizar que los cambios se vean al instante.
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"Nos esforzamos por crear una interfaz moderna. Implementamos la técnica de Glassmorphism (emulación de cristal esmerilado con desenfoque de fondo), lo que le da un aspecto sofisticado y limpio. Además, evitamos las molestas alertas tradicionales del navegador; en su lugar, si hay un error en los campos de entrada, la propia tarjeta del formulario tiembla visualmente con colores vivos de advertencia. También agregamos un sistema anti-caché en la importación de hojas de estilo para asegurar que los navegadores web siempre rendericen la última versión del diseño."
+
+--------------------------------------------------------------------------------
+DIAPOSITIVA 8: Conclusiones y Demostración en Vivo
+--------------------------------------------------------------------------------
+[TÍTULO]
+MotorDesk: Listo para la Operación
+
+[CONTENIDO VISUAL]
+- Software seguro, modular y rápido.
+- Gran rendimiento y consumo mínimo de recursos del lado del cliente.
+- Escalabilidad lista para añadir nuevos módulos (facturación, inventarios, etc.).
+- [¡Pasar a la Demostración en Vivo!]
+
+[NOTAS DEL EXPOSITOR (Lo que debes decir)]
+"En resumen, MotorDesk demuestra que una aplicación empresarial no tiene por qué ser aburrida ni lenta. Logramos conjugar la robustez y seguridad de Java Enterprise con una interfaz moderna y ligera. Ahora, procederemos a realizar una demostración en vivo del funcionamiento del sistema."
+================================================================================
