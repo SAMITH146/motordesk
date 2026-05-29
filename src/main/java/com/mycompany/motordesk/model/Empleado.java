@@ -4,7 +4,7 @@ import java.sql.Date;
 
 public class Empleado {
 
-    private long idEmpleado;     // doc_emple
+    private String idEmpleado;     // doc_emple
     private String nombre;       // nom_empleado
     private String pin;          // pin_acceso
     private int idRol;
@@ -16,11 +16,11 @@ public class Empleado {
     }
 
     // ===== GETTERS & SETTERS =====
-    public void setIdEmpleado(long idEmpleado) {
+    public void setIdEmpleado(String idEmpleado) {
         this.idEmpleado = idEmpleado;
     }
 
-    public long getIdEmpleado() {
+    public String getIdEmpleado() {
         return idEmpleado;
     }
 

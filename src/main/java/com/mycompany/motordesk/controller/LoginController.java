@@ -27,24 +27,13 @@ public class LoginController extends HttpServlet {
 
             // ================= ADMIN =================
             if (emp.getIdRol() == 1) {
-
-                // Datos iniciales dashboard (temporales)
-                // luego vendrán del DAO
-                request.setAttribute("totalMecanicos",0);
-                request.setAttribute("totalProductos", 0);
-                request.setAttribute("totalOrdenes", 0);
-                request.setAttribute("stockCritico", 0);
-
-                // IMPORTANTE: usar FORWARD
-                request.getRequestDispatcher("/admin/panelAdmin.jsp")
-                        .forward(request, response);
-
+                response.sendRedirect(request.getContextPath() + "/AdminDashboard");
             }
             // ================= MECANICO =================
             else if (emp.getIdRol() == 2) {
 
                 response.sendRedirect(
-                        request.getContextPath() + "/Mecanico/panelMecanico.jsp"
+                        request.getContextPath() + "/PanelMecanicoController"
                 );
             }
             // ================= OTROS ROLES O ROL NULO =================

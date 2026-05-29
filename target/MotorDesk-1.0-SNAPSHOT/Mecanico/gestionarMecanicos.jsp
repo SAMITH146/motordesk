@@ -8,9 +8,9 @@
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link rel="stylesheet" href="${pageContext.request.contextPath}/css/variables.css" />
             <link rel="stylesheet" href="${pageContext.request.contextPath}/css/estilos.css" />
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/navbar.css" />
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/navbar.css?v=1.1" />
             <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-panel.css" />
-            <link rel="stylesheet" href="${pageContext.request.contextPath}/css/admin-mecanicos.css" />
+
             <title>Gestión de Mecánicos | MotorDesk</title>
             <style>
                 .admin-alert {
@@ -28,6 +28,16 @@
                 .admin-alert__close { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: inherit; opacity: 0.7; }
                 .admin-alert__close:hover { opacity: 1; }
                 @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+                /* Quitar flechitas del input de número (Documento) */
+                input[type=number]::-webkit-inner-spin-button,
+                input[type=number]::-webkit-outer-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+                input[type=number] {
+                    -moz-appearance: textfield;
+                }
             </style>
         </head>
 
@@ -39,13 +49,13 @@
                 </div>
 
                 <nav class="navbar__menu" aria-label="Menu principal">
-                    <a href="${pageContext.request.contextPath}/pages/admin.jsp" class="navbar__menu-item">Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
                     <a href="${pageContext.request.contextPath}/MecanicoController"
                         class="navbar__menu-item active">Mecánicos</a>
-                    <a href="${pageContext.request.contextPath}/pages/admin_productos.jsp"
-                        class="navbar__menu-item">Productos</a>
-                    <a href="${pageContext.request.contextPath}/pages/admin_ordenes.jsp"
-                        class="navbar__menu-item">Órdenes</a>
+                    <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item">Productos</a>
+                    <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
+                    <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
+                    <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
                 </nav>
 
                 <div class="navbar__session">
@@ -53,7 +63,7 @@
                         <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
 
                     </div>
-                    <a href="${pageContext.request.contextPath}/LogoutController" class="navbar__session-btn">
+                    <a href="#logoutModal" class="navbar__session-btn">
                         <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png"
                             alt="Cerrar sesión" class="navbar__session-icon" />
                     </a>
@@ -150,16 +160,23 @@
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </form>
-                                                        <form
-                                                            action="${pageContext.request.contextPath}/MecanicoController"
-                                                            method="post" class="admin-action-form"
-                                                            onsubmit="return confirm('¿Estás seguro de que deseas eliminar este mecánico? Esta acción no se puede deshacer.');">
-                                                            <input type="hidden" name="action" value="delete">
-                                                            <input type="hidden" name="id" value="${mecanico.idEmpleado}">
-                                                            <button type="submit"
-                                                                class="admin-action-btn admin-action-btn--delete"
-                                                                title="Eliminar">🗑️ Eliminar</button>
-                                                        </form>
+                                                        <a href="#deleteModal-${mecanico.idEmpleado}" class="admin-action-btn admin-action-btn--delete" title="Eliminar">🗑️ Eliminar</a>
+
+                                                        <!-- Delete Modal (CSS Only) -->
+                                                        <div id="deleteModal-${mecanico.idEmpleado}" class="modal-css">
+                                                            <div class="modal-content-css">
+                                                                <h2>¿Eliminar Mecánico?</h2>
+                                                                <p>Estás a punto de eliminar a <strong>${mecanico.nombre}</strong>.<br>Esta acción no se puede deshacer.</p>
+                                                                <div class="modal-buttons-css">
+                                                                    <a href="#" class="btn-modal-css btn-modal-css--cancel">Cancelar</a>
+                                                                    <form action="${pageContext.request.contextPath}/MecanicoController" method="post" style="display:inline;">
+                                                                        <input type="hidden" name="action" value="delete">
+                                                                        <input type="hidden" name="id" value="${mecanico.idEmpleado}">
+                                                                        <button type="submit" class="btn-modal-css btn-modal-css--confirm">Sí, Eliminar</button>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -221,11 +238,18 @@
                         </form>
                     </article>
                 </section>
-
-                <footer class="admin-footer">
-                    <p>&copy; 2024 MotorDesk Web System. Todos los derechos reservados.</p>
-                </footer>
             </main>
-        </body>
 
+            <!-- Log out Modal (CSS Only) -->
+            <div id="logoutModal" class="modal-css">
+                <div class="modal-content-css">
+                    <h2>¿Cerrar Sesión?</h2>
+                    <p>Estás a punto de salir del sistema.<br>¿Estás seguro?</p>
+                    <div class="modal-buttons-css">
+                        <a href="#" class="btn-modal-css btn-modal-css--cancel">No, quedarme</a>
+                        <a href="${pageContext.request.contextPath}/LogoutController" class="btn-modal-css btn-modal-css--confirm">Sí, salir</a>
+                    </div>
+                </div>
+            </div>
+        </body>
         </html>
