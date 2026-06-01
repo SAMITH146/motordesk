@@ -25,6 +25,7 @@
                         class="navbar__menu-item active">Dashboard</a>
                     <a href="${pageContext.request.contextPath}/MecanicoController"
                         class="navbar__menu-item">Mecánicos</a>
+                    <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
                     <a href="${pageContext.request.contextPath}/ProductoController"
                         class="navbar__menu-item">Productos</a>
                     <a href="${pageContext.request.contextPath}/admin/ingreso"

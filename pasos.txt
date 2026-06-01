@@ -25,3 +25,17 @@ Resumen del Flujo de Trabajo (End-to-End)
 Mermaid diagram
 Revisión Final
 Este es el alcance completo para tu presentación del jueves. Incluye toda la lógica de negocio central de un taller. Si estás de acuerdo con este plan, procederé a crear la lista de tareas (task.md) y empezaré a programar inmediatamente el PASO 1.
+
+
+
+
+
+Listo! He completado el Paso 2 y el Paso 3.
+
+Resumen de lo logrado:
+
+Flujo del Mecánico: Ahora, cuando el mecánico le da a "+ Nueva", el formulario de la orden exige los datos del dueño (Documento, Nombre, Dirección) y del vehículo (Placa, Marca, Modelo, Año) con validaciones estrictas en tiempo real. Al enviar el formulario, el controlador de Java guarda o actualiza al cliente, al vehículo y genera la orden en la base de datos automáticamente vinculando todo.
+Vista de Clientes para el Admin: He agregado la pestaña "Clientes" al menú de navegación principal. Si entras con el rol de Administrador, verás la tabla con todos los dueños de los vehículos y un botón para editar su nombre o dirección si hubo algún error tipográfico al momento de crearlo.
+Ya hemos cumplido con toda la lógica central del negocio: Cliente -> Vehículo -> Orden.
+
+¿Procedo con el Paso 4 (Módulo de Facturación)? En este paso, agregaré el botón de "Ver Factura" a las órdenes terminadas para que el Admin pueda generar la factura comercial y cambiarla a estado "Facturado" una vez se reciba el pago.

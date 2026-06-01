@@ -27,6 +27,7 @@
         <nav class="navbar__menu">
             <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
             <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecanicos</a>
+            <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
             <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item active">Productos</a>
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>

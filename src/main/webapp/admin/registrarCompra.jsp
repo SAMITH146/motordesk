@@ -23,6 +23,7 @@
         <nav class="navbar__menu" aria-label="Menu principal">
             <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
             <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecánicos</a>
+            <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
             <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item">Productos</a>
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item active">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
