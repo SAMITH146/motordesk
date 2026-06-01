@@ -41,12 +41,12 @@
 
         <section class="admin-section">
             <div class="tabs" style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                <a href="?filtro=TODAS" class="admin-btn ${empty param.filtro or param.filtro == 'TODAS' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Todas</a>
-                <a href="?filtro=ABIERTA" class="admin-btn ${param.filtro == 'ABIERTA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Abiertas</a>
-                <a href="?filtro=PROCESO" class="admin-btn ${param.filtro == 'PROCESO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">En Proceso</a>
-                <a href="?filtro=ESPERA" class="admin-btn ${param.filtro == 'ESPERA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">En Espera</a>
-                <a href="?filtro=TERMINADO" class="admin-btn ${param.filtro == 'TERMINADO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Terminadas</a>
-                <a href="?filtro=CERRADA" class="admin-btn ${param.filtro == 'CERRADA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Cerradas</a>
+                <a href="?action=listAll&filtro=TODAS" class="admin-btn ${empty param.filtro or param.filtro == 'TODAS' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Todas</a>
+                <a href="?action=listAll&filtro=ABIERTA" class="admin-btn ${param.filtro == 'ABIERTA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Abiertas</a>
+                <a href="?action=listAll&filtro=PROCESO" class="admin-btn ${param.filtro == 'PROCESO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">En Proceso</a>
+                <a href="?action=listAll&filtro=ESPERA" class="admin-btn ${param.filtro == 'ESPERA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">En Espera</a>
+                <a href="?action=listAll&filtro=TERMINADO" class="admin-btn ${param.filtro == 'TERMINADO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Terminadas</a>
+                <a href="?action=listAll&filtro=FACTURADO" class="admin-btn ${param.filtro == 'FACTURADO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Facturadas</a>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;" id="orders-grid">
@@ -62,7 +62,7 @@
                                 
                                 <div style="font-size: 0.9rem; line-height: 1.4; margin-bottom: 1rem;">
                                     <p><strong>Descripción:</strong> ${ord.descripcion}</p>
-                                    <p><strong>ID Mecánico:</strong> ${ord.docEmpleFk}</p>
+                                    <p><strong>Mecánico:</strong> ${not empty ord.nombreMecanico ? ord.nombreMecanico : ord.docEmpleFk}</p>
                                     <p><strong>Total Orden:</strong> <fmt:formatNumber value="${ord.total}" type="currency" currencySymbol="$" /></p>
                                     <p style="opacity: 0.6; margin-top: 5px;">🕒 <fmt:formatDate value="${ord.fecha}" pattern="dd/MM/yyyy" /></p>
                                 </div>
@@ -74,31 +74,33 @@
                                     </div>
                                 </c:if>
 
-                                <a href="?filtro=${param.filtro}&editar=${ord.idOrden}#orden-${ord.idOrden}" class="admin-btn admin-btn--small" id="orden-${ord.idOrden}" style="display:block; text-align:center; text-decoration:none; width: 100%;">Actualizar Estado</a>
+                                <c:if test="${ord.estado ne 'FACTURADO'}">
+                                    <a href="?action=listAll&filtro=${empty param.filtro ? 'TODAS' : param.filtro}&editar=${ord.idOrden}#orden-${ord.idOrden}" class="admin-btn admin-btn--small" id="orden-${ord.idOrden}" style="display:block; text-align:center; text-decoration:none; width: 100%;">Actualizar Estado</a>
 
-                                <c:if test="${param.editar == ord.idOrden}">
-                                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                                    <form action="${pageContext.request.contextPath}/OrdenController" method="post" class="admin-form">
-                                        <input type="hidden" name="action" value="updateStatus" />
-                                        <input type="hidden" name="id_orden" value="${ord.idOrden}" />
-                                        
-                                        <select name="nuevo_estado" class="form-input" required>
-                                            <option value="ABIERTA" ${ord.estado == 'ABIERTA' ? 'selected' : ''}>Abierta</option>
-                                            <option value="PROCESO" ${ord.estado == 'PROCESO' ? 'selected' : ''}>En Proceso</option>
-                                            <option value="ESPERA" ${ord.estado == 'ESPERA' ? 'selected' : ''}>En Espera</option>
-                                            <option value="TERMINADO" ${ord.estado == 'TERMINADO' ? 'selected' : ''}>Terminado</option>
-                                            <option value="CERRADA" ${ord.estado == 'CERRADA' ? 'selected' : ''}>Cerrada</option>
-                                        </select>
+                                    <c:if test="${param.editar == ord.idOrden}">
+                                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                                        <form action="${pageContext.request.contextPath}/OrdenController" method="post" class="admin-form">
+                                            <input type="hidden" name="action" value="updateStatus" />
+                                            <input type="hidden" name="id_orden" value="${ord.idOrden}" />
+                                            
+                                            <select name="nuevo_estado" class="form-input" required onchange="toggleEspera(this, ${ord.idOrden})">
+                                                <option value="ABIERTA" ${ord.estado == 'ABIERTA' ? 'selected' : ''}>Abierta</option>
+                                                <option value="PROCESO" ${ord.estado == 'PROCESO' ? 'selected' : ''}>En Proceso</option>
+                                                <option value="ESPERA" ${ord.estado == 'ESPERA' ? 'selected' : ''}>En Espera</option>
+                                                <option value="TERMINADO" ${ord.estado == 'TERMINADO' ? 'selected' : ''}>Terminado</option>
+                                                <option value="FACTURADO" ${ord.estado == 'FACTURADO' ? 'selected' : ''}>Facturada</option>
+                                            </select>
 
-                                        <div style="margin-top: 10px;">
-                                            <input type="text" name="motivo" class="form-input" placeholder="Motivo (solo si es Espera)" value="${ord.motivoEspera}" style="margin-bottom: 5px;" />
-                                            <input type="text" name="tiempo" class="form-input" placeholder="Tiempo (ej: 1h)" value="${ord.tiempoEspera}" />
-                                        </div>
+                                            <div id="espera-fields-${ord.idOrden}" style="margin-top: 10px; display: ${ord.estado == 'ESPERA' ? 'block' : 'none'};">
+                                                <input type="text" name="motivo" class="form-input" placeholder="Motivo (solo si es Espera)" value="${ord.motivoEspera}" style="margin-bottom: 5px;" />
+                                                <input type="text" name="tiempo" class="form-input" placeholder="Tiempo (ej: 1h)" value="${ord.tiempoEspera}" />
+                                            </div>
 
-                                        <button type="submit" class="admin-btn" style="width: 100%; margin-top: 10px;">Guardar</button>
-                                        <a href="?filtro=${param.filtro}" class="admin-btn admin-btn--danger" style="display:block; text-align:center; text-decoration:none; width: 100%; margin-top: 10px;">Cancelar</a>
-                                    </form>
-                                </div>
+                                            <button type="submit" class="admin-btn" style="width: 100%; margin-top: 10px;">Guardar</button>
+                                            <a href="?action=listAll&filtro=${empty param.filtro ? 'TODAS' : param.filtro}" class="admin-btn admin-btn--danger" style="display:block; text-align:center; text-decoration:none; width: 100%; margin-top: 10px;">Cancelar</a>
+                                        </form>
+                                    </div>
+                                    </c:if>
                                 </c:if>
                             </article>
                             </c:if>
@@ -125,5 +127,16 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleEspera(selectElement, idOrden) {
+            var fields = document.getElementById('espera-fields-' + idOrden);
+            if (selectElement.value === 'ESPERA') {
+                fields.style.display = 'block';
+            } else {
+                fields.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html>

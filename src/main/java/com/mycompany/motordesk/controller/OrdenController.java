@@ -1,8 +1,12 @@
 package com.mycompany.motordesk.controller;
 
+import com.mycompany.motordesk.dao.ClienteDAO;
 import com.mycompany.motordesk.dao.OrdenDAO;
+import com.mycompany.motordesk.dao.VehiculoDAO;
+import com.mycompany.motordesk.model.Cliente;
 import com.mycompany.motordesk.model.DetalleOrden;
 import com.mycompany.motordesk.model.OrdenTrabajo;
+import com.mycompany.motordesk.model.Vehiculo;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +24,7 @@ public class OrdenController extends HttpServlet {
         OrdenDAO dao = new OrdenDAO();
         String action = request.getParameter("action");
         
-        if ("listAll".equals(action)) {
+        if ("listAll".equals(action) || action == null || action.trim().isEmpty()) {
             request.setAttribute("listaOrdenes", dao.listarTodas());
             request.getRequestDispatcher("/admin/gestionarOrdenes.jsp").forward(request, response);
         } else {
@@ -39,9 +43,50 @@ public class OrdenController extends HttpServlet {
         
         try {
             if ("insert".equals(action)) {
-                // Register new order from Mechanic
+                // 1. Process Cliente
+                String docCliente = request.getParameter("doc_cliente");
+                String nomCliente = request.getParameter("nom_cliente");
+                String dirCliente = request.getParameter("direccion_cliente");
+                
+                ClienteDAO clienteDao = new ClienteDAO();
+                Cliente cliente = clienteDao.obtenerPorDocumento(docCliente);
+                int idCliente;
+                if (cliente == null) {
+                    Cliente nuevo = new Cliente(0, nomCliente, docCliente, dirCliente);
+                    idCliente = clienteDao.insertar(nuevo);
+                } else {
+                    idCliente = cliente.getIdCliente();
+                    // Optionally update name/address if changed
+                    cliente.setNombre(nomCliente);
+                    cliente.setDireccion(dirCliente);
+                    clienteDao.actualizar(cliente);
+                }
+
+                // 2. Process Vehiculo
+                String placa = request.getParameter("placa");
+                String marca = request.getParameter("marca");
+                String modelo = request.getParameter("modelo");
+                int anio = Integer.parseInt(request.getParameter("anio"));
+                
+                VehiculoDAO vehiculoDao = new VehiculoDAO();
+                Vehiculo vehiculo = vehiculoDao.obtenerPorPlaca(placa);
+                int idVehiculo;
+                if (vehiculo == null) {
+                    Vehiculo nuevoV = new Vehiculo(0, idCliente, placa, marca, modelo, anio);
+                    idVehiculo = vehiculoDao.insertar(nuevoV);
+                } else {
+                    idVehiculo = vehiculo.getIdVehiculo();
+                    vehiculo.setIdClienteFk(idCliente);
+                    vehiculo.setMarca(marca);
+                    vehiculo.setModelo(modelo);
+                    vehiculo.setAnio(anio);
+                    vehiculoDao.actualizar(vehiculo);
+                }
+
+                // 3. Register new order from Mechanic
                 OrdenTrabajo o = new OrdenTrabajo();
-                o.setPlacaVehiculo(request.getParameter("placa"));
+                o.setIdVehiculoFk(idVehiculo);
+                o.setPlacaVehiculo(placa);
                 o.setDescripcion(request.getParameter("descripcion"));
                 o.setDocEmpleFk(request.getParameter("id_mecanico"));
                 o.setEstado("ABIERTA");

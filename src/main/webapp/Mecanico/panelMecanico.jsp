@@ -98,7 +98,7 @@
                                             </span>
                                             <span>Total: <strong><fmt:formatNumber value="${ord.total}" type="currency" currencySymbol="$" /></strong></span>
                                         </div>
-                                        <c:if test="${ord.estado ne 'CERRADA' and ord.estado ne 'TERMINADO'}">
+                                        <c:if test="${ord.estado ne 'FACTURADO' and ord.estado ne 'TERMINADO'}">
                                             <div style="margin-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 10px; display: flex; gap: 8px; align-items: center; justify-content: space-between;">
                                                 <form action="${pageContext.request.contextPath}/OrdenController" method="post" style="display: flex; gap: 6px; align-items: center; flex: 1;">
                                                     <input type="hidden" name="action" value="updateStatusMecanico" />
@@ -178,10 +178,49 @@
                     </c:if>
                     <input type="hidden" name="id_mecanico" value="${sessionScope.usuarioLogueado.idEmpleado}" />
 
-                    <div class="form-group">
-                        <label class="form-label">Placa del Vehiculo</label>
-                        <input type="text" name="placa" class="form-input" placeholder="Ej: ABC-123" value="${not empty requestScope.ordenEditar ? requestScope.ordenEditar.placaVehiculo : ''}" required />
+                    <!-- DATOS DEL DUEÑO (CLIENTE) -->
+                    <h3 style="margin-top: 1rem; margin-bottom: 0.5rem; color: #fff; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">1. Datos del Dueño (Cliente)</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Documento (Cédula)</label>
+                            <input type="text" name="doc_cliente" class="form-input" placeholder="Ej: 123456789" required
+                                pattern="\d+" minlength="6" maxlength="15" title="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nombre Completo</label>
+                            <input type="text" name="nom_cliente" class="form-input" placeholder="Nombres y Apellidos" required 
+                                pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')" />
+                        </div>
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" name="direccion_cliente" class="form-input" placeholder="Ej: Calle 123 #45-67" required />
+                    </div>
+
+                    <!-- DATOS DEL VEHÍCULO -->
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #fff; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">2. Datos del Vehículo</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Placa del Vehículo</label>
+                            <input type="text" name="placa" class="form-input" placeholder="Ej: ABC-123" value="${not empty requestScope.ordenEditar ? requestScope.ordenEditar.placaVehiculo : ''}" required 
+                                maxlength="7" oninput="this.value = this.value.toUpperCase()" />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Marca</label>
+                            <input type="text" name="marca" class="form-input" placeholder="Ej: Chevrolet" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" name="modelo" class="form-input" placeholder="Ej: Spark" required />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Año</label>
+                            <input type="number" name="anio" class="form-input" placeholder="Ej: 2018" required min="1900" max="2100" />
+                        </div>
+                    </div>
+
+                    <!-- DATOS DEL SERVICIO -->
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #fff; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">3. Datos del Servicio</h3>
 
                     <div class="form-group">
                         <label class="form-label">Descripcion del Fallo / Servicio</label>

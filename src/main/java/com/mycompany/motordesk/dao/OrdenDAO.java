@@ -52,7 +52,11 @@ public class OrdenDAO {
 
             // 2. Insert Main Order
             try (PreparedStatement psO = con.prepareStatement(sqlOrden, Statement.RETURN_GENERATED_KEYS)) {
-                psO.setNull(1, java.sql.Types.INTEGER); // For now NULL as we don't handle vehicle table yet
+                if (o.getIdVehiculoFk() > 0) {
+                    psO.setInt(1, o.getIdVehiculoFk());
+                } else {
+                    psO.setNull(1, java.sql.Types.INTEGER);
+                }
                 psO.setString(2, o.getDocEmpleFk());
                 psO.setString(3, "ABIERTA");
                 psO.setString(4, o.getDescripcion());
@@ -105,7 +109,7 @@ public class OrdenDAO {
 
     public List<OrdenTrabajo> listarTodas() {
         List<OrdenTrabajo> lista = new ArrayList<>();
-        String sql = "SELECT * FROM ordentrabajo ORDER BY fecha DESC";
+        String sql = "SELECT o.*, e.nom_empleado FROM ordentrabajo o LEFT JOIN empleado e ON o.doc_emple_fk = e.doc_emple ORDER BY o.fecha DESC";
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -120,7 +124,7 @@ public class OrdenDAO {
 
     public List<OrdenTrabajo> listarPorMecanico(String docMecanico) {
         List<OrdenTrabajo> lista = new ArrayList<>();
-        String sql = "SELECT * FROM ordentrabajo WHERE doc_emple_fk = ? ORDER BY fecha DESC";
+        String sql = "SELECT o.*, e.nom_empleado FROM ordentrabajo o LEFT JOIN empleado e ON o.doc_emple_fk = e.doc_emple WHERE o.doc_emple_fk = ? ORDER BY o.fecha DESC";
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, docMecanico);
@@ -155,7 +159,7 @@ public class OrdenDAO {
     }
 
     public OrdenTrabajo obtenerPorId(int id) {
-        String sql = "SELECT * FROM ordentrabajo WHERE id_orden = ?";
+        String sql = "SELECT o.*, e.nom_empleado FROM ordentrabajo o LEFT JOIN empleado e ON o.doc_emple_fk = e.doc_emple WHERE o.id_orden = ?";
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -319,6 +323,11 @@ public class OrdenDAO {
         o.setTotal(rs.getDouble("total"));
         o.setMotivoEspera(rs.getString("motivo_espera"));
         o.setTiempoEspera(rs.getString("tiempo_espera"));
+        try {
+            o.setNombreMecanico(rs.getString("nom_empleado"));
+        } catch (SQLException ignore) {
+            // nom_empleado not in result set
+        }
         return o;
     }
 }

@@ -67,53 +67,75 @@ public class MecanicoController extends HttpServlet {
                 System.out.println("ELIMINADO: " + ok);
             } else if ("update".equals(action)) {
                 // Actualizar mecánico existente
-                Empleado emp = new Empleado();
-                emp.setIdEmpleado(request.getParameter("doc_emple"));
-                emp.setNombre(request.getParameter("nom_empleado"));
-                emp.setPin(request.getParameter("pin_acceso"));
-                emp.setIdRol(Integer.parseInt(request.getParameter("id_rol_fk")));
-                emp.setIdCargo(Integer.parseInt(request.getParameter("id_cargo_fk")));
-
+                String doc = request.getParameter("doc_emple");
+                String pin = request.getParameter("pin_acceso");
                 EmpleadoDAO dao = new EmpleadoDAO();
-                boolean ok = dao.actualizar(emp);
-
-                if (ok) {
-                    request.getSession().setAttribute("mensaje", "Mecánico actualizado correctamente.");
-                    request.getSession().setAttribute("tipoMensaje", "success");
-                } else {
-                    request.getSession().setAttribute("mensaje", "Error al actualizar el mecánico.");
+                
+                if (doc == null || doc.trim().length() < 9 || doc.trim().length() > 10) {
+                    request.getSession().setAttribute("mensaje", "No se guardó porque no es un documento válido.");
                     request.getSession().setAttribute("tipoMensaje", "error");
+                } else if (dao.existePin(pin, doc.trim())) {
+                    request.getSession().setAttribute("mensaje", "Ese PIN no está disponible.");
+                    request.getSession().setAttribute("tipoMensaje", "error");
+                } else {
+                    Empleado emp = new Empleado();
+                    emp.setIdEmpleado(doc.trim());
+                    emp.setNombre(request.getParameter("nom_empleado"));
+                    emp.setPin(pin);
+                    emp.setIdRol(Integer.parseInt(request.getParameter("id_rol_fk")));
+                    emp.setIdCargo(Integer.parseInt(request.getParameter("id_cargo_fk")));
+
+                    boolean ok = dao.actualizar(emp);
+
+                    if (ok) {
+                        request.getSession().setAttribute("mensaje", "Mecánico actualizado correctamente.");
+                        request.getSession().setAttribute("tipoMensaje", "success");
+                    } else {
+                        request.getSession().setAttribute("mensaje", "Error al actualizar el mecánico.");
+                        request.getSession().setAttribute("tipoMensaje", "error");
+                    }
+                    System.out.println("ACTUALIZADO: " + ok);
                 }
-                System.out.println("ACTUALIZADO: " + ok);
             } else {
                 // Registrar nuevo mecánico
-                Empleado emp = new Empleado();
-
-                emp.setIdEmpleado(request.getParameter("doc_emple"));
-
-                emp.setNombre(request.getParameter("nom_empleado"));
-                emp.setPin(request.getParameter("pin_acceso"));
-
-                emp.setIdRol(
-                        Integer.parseInt(request.getParameter("id_rol_fk"))
-                );
-
-                emp.setIdCargo(
-                        Integer.parseInt(request.getParameter("id_cargo_fk"))
-                );
-
-                // guardar en BD
+                String doc = request.getParameter("doc_emple");
+                String pin = request.getParameter("pin_acceso");
                 EmpleadoDAO dao = new EmpleadoDAO();
-                boolean ok = dao.insertar(emp);
-                if (ok) {
-                    request.getSession().setAttribute("mensaje", "Mecánico registrado exitosamente.");
-                    request.getSession().setAttribute("tipoMensaje", "success");
-                } else {
-                    request.getSession().setAttribute("mensaje", "Error al registrar el mecánico.");
+                
+                if (doc == null || doc.trim().length() < 9 || doc.trim().length() > 10) {
+                    request.getSession().setAttribute("mensaje", "No se guardó porque no es un documento válido. (Debe tener 9 o 10 dígitos)");
                     request.getSession().setAttribute("tipoMensaje", "error");
-                }
+                } else if (dao.existePin(pin, null)) {
+                    request.getSession().setAttribute("mensaje", "Ese PIN no está disponible.");
+                    request.getSession().setAttribute("tipoMensaje", "error");
+                } else {
+                    Empleado emp = new Empleado();
 
-                System.out.println("INSERTADO: " + ok);
+                    emp.setIdEmpleado(doc.trim());
+
+                    emp.setNombre(request.getParameter("nom_empleado"));
+                    emp.setPin(pin);
+
+                    emp.setIdRol(
+                            Integer.parseInt(request.getParameter("id_rol_fk"))
+                    );
+
+                    emp.setIdCargo(
+                            Integer.parseInt(request.getParameter("id_cargo_fk"))
+                    );
+
+                    // guardar en BD
+                    boolean ok = dao.insertar(emp);
+                    if (ok) {
+                        request.getSession().setAttribute("mensaje", "Mecánico registrado exitosamente.");
+                        request.getSession().setAttribute("tipoMensaje", "success");
+                    } else {
+                        request.getSession().setAttribute("mensaje", "Error al registrar el mecánico.");
+                        request.getSession().setAttribute("tipoMensaje", "error");
+                    }
+
+                    System.out.println("INSERTADO: " + ok);
+                }
             }
 
         } catch (Exception e) {

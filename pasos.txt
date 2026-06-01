@@ -1,0 +1,27 @@
+ Lo que VAMOS a implementar (Días 1 a 3)
+🟢 PASO 1: Ajuste de Estados y Modelos Base
+Cambiar el estado "CERRADA" a "FACTURADO" en todo el sistema (vistas del Admin y Mecánico).
+Crear las clases Cliente.java y Vehiculo.java que calcen exactamente con tu base de datos (nom_cliente, doc_cliente, direccion_cliente, placa, marca, modelo, anio).
+Crear ClienteDAO y VehiculoDAO para manejar inserciones y búsquedas.
+🟡 PASO 2: Flujo del Mecánico (Crear Orden Completa)
+Modificar panelMecanico.jsp para que al darle a "Nueva Orden", pida obligatoriamente:
+Dueño: Documento, Nombre, Dirección.
+Vehículo: Placa, Marca, Modelo, Año.
+En OrdenController, al recibir esta orden, el sistema automáticamente guardará/actualizará al Cliente y al Vehículo en la base de datos, y vinculará la Orden al Vehículo.
+🟠 PASO 3: Vista de Clientes para el Administrador
+Crear una nueva pestaña en el menú del Administrador llamada "Clientes".
+Aquí el Admin verá la lista de todos los dueños de vehículos.
+Podrá editar los datos (si el mecánico escribió mal un nombre o dirección).
+🔵 PASO 4: Módulo de Facturación y Vista Detallada
+En la tabla de Gestión de Órdenes del Admin, se mostrarán los datos del Cliente y Vehículo.
+Añadir un botón "Ver Factura" a las órdenes.
+Crear una vista nueva (factura.jsp) con diseño de factura comercial que muestre:
+Datos del taller (MotorDesk).
+Datos del Cliente y Vehículo.
+Detalle de repuestos y mano de obra.
+Total a pagar.
+Cuando el Admin reciba el pago, cambiará el estado a "FACTURADO".
+Resumen del Flujo de Trabajo (End-to-End)
+Mermaid diagram
+Revisión Final
+Este es el alcance completo para tu presentación del jueves. Incluye toda la lógica de negocio central de un taller. Si estás de acuerdo con este plan, procederé a crear la lista de tareas (task.md) y empezaré a programar inmediatamente el PASO 1.

@@ -33,7 +33,7 @@
                         <div class="login__grupo">
                             <label class="login__label">PIN de Acceso</label>
                             <input class="login__input" type="password" name="pin" maxlength="10" placeholder="••••••••"
-                                required>
+                                required pattern="\d+" title="Ingrese solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>
 
                         <button class="login__boton" type="submit">Iniciar Sesión</button>

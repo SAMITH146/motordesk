@@ -50,6 +50,9 @@
             </header>
 
             <article class="admin-card" style="padding: 1.5rem;">
+                <div style="margin-bottom: 1rem;">
+                    <input type="text" id="filtroProveedor" class="form-input" placeholder="🔍 Buscar por proveedor..." onkeyup="filtrarCompras()" style="max-width: 300px;" />
+                </div>
                 <div style="overflow-x: auto;">
                     <table class="admin-table">
                         <thead>
@@ -64,7 +67,7 @@
                             <c:choose>
                                 <c:when test="${not empty requestScope.compras}">
                                     <c:forEach var="compra" items="${requestScope.compras}">
-                                        <tr>
+                                        <tr class="compra-row">
                                             <td># ${compra.idCompra}</td>
                                             <td>${not empty compra.nombreProveedor ? compra.nombreProveedor : 'Proveedor Eliminado'}</td>
                                             <td><fmt:formatDate value="${compra.fechaCompra}" pattern="dd/MM/yyyy" /></td>
@@ -96,5 +99,25 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function filtrarCompras() {
+            var input = document.getElementById("filtroProveedor");
+            var filter = input.value.toLowerCase();
+            var rows = document.querySelectorAll(".compra-row");
+
+            rows.forEach(function(row) {
+                var tdProveedor = row.getElementsByTagName("td")[1];
+                if (tdProveedor) {
+                    var txtValue = tdProveedor.textContent || tdProveedor.innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>

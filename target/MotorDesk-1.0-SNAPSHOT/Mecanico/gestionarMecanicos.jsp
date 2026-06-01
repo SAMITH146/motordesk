@@ -86,12 +86,7 @@
                         <p class="admin-section__subtitle">Administra los usuarios pertenecientes al taller.</p>
                     </header>
 
-                    <div class="admin-toolbar">
-                        <button type="button" class="admin-btn"
-                            onclick="window.location.hash='#formMecanico';">
-                            <span>+</span> Agregar Mecánico
-                        </button>
-                    </div>
+
 
                     <div class="admin-table-container">
                         <table class="admin-table">
@@ -202,20 +197,23 @@
 
                             <div class="admin-form__group">
                                 <label class="admin-form__label" for="doc_emple">Documento:</label>
-                                <input class="admin-form__input" type="number" id="doc_emple" name="doc_emple" required
-                                    step="1" min="0" placeholder="Ej: 12345678" value="${requestScope.empleadoEditar.idEmpleado}" ${not empty requestScope.empleadoEditar ? 'readonly' : ''}>
+                                <input class="admin-form__input" type="text" id="doc_emple" name="doc_emple" required
+                                    placeholder="Ej: 123456789" value="${requestScope.empleadoEditar.idEmpleado}" ${not empty requestScope.empleadoEditar ? 'readonly' : ''}
+                                    minlength="9" maxlength="10" pattern="\d{9,10}" title="El documento debe tener 9 o 10 números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <div class="admin-form__group">
                                 <label class="admin-form__label" for="nom_empleado">Nombre:</label>
                                 <input class="admin-form__input" type="text" id="nom_empleado" name="nom_empleado"
-                                    required placeholder="Nombre y Apellidos" value="${requestScope.empleadoEditar.nombre}">
+                                    required placeholder="Nombre y Apellidos" value="${requestScope.empleadoEditar.nombre}" autocomplete="off"
+                                    pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras y espacios" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
                             </div>
 
                             <div class="admin-form__group">
                                 <label class="admin-form__label" for="pin_acceso">PIN:</label>
                                 <input class="admin-form__input" type="password" id="pin_acceso" name="pin_acceso"
-                                    maxlength="10" required placeholder="Ingrese 10 dígitos" value="${requestScope.empleadoEditar.pin}">
+                                    maxlength="10" required placeholder="Ingrese de 4 a 10 dígitos" value="${requestScope.empleadoEditar.pin}" autocomplete="new-password"
+                                    pattern="\d{4,10}" title="El PIN debe contener entre 4 y 10 números enteros" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <!-- Ocultos porque el admin crea mecánicos -->

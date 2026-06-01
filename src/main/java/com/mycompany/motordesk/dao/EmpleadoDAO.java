@@ -165,4 +165,21 @@ public class EmpleadoDAO {
         }
         return actualizado;
     }
+
+    public boolean existePin(String pin, String excludeDoc) {
+        boolean existe = false;
+        try (Connection con = Conexion.getConexion()) {
+            String sql = "SELECT 1 FROM empleado WHERE pin_acceso = ? AND doc_emple != ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, pin);
+            ps.setString(2, excludeDoc == null ? "" : excludeDoc);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                existe = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return existe;
+    }
 }

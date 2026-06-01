@@ -1,10 +1,12 @@
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\CompraRepuestoController.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\AdminDashboardController.java
+D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\VehiculoDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\Proveedor.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\DetalleOrden.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\CompraRepuesto.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\EmpleadoDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\CompraRepuestoDAO.java
+D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\Vehiculo.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\ProductoDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\Rol.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\resources\JavaEE8Resource.java
@@ -16,6 +18,7 @@ D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\config\Conex
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\LogoutController.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\PanelMecanicoDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\AdminDAO.java
+D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\ClienteDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\ProveedorDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\LoginController.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\TestConexionServlet.java
@@ -25,4 +28,5 @@ D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\JAXRSConfigu
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\dao\OrdenDAO.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\MecanicoController.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\controller\PanelMecanicoController.java
+D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\Cliente.java
 D:\adso\proyectoSAM\motordesk\src\main\java\com\mycompany\motordesk\model\Producto.java

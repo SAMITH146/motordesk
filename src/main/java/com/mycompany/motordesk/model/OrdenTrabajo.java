@@ -10,8 +10,26 @@ public class OrdenTrabajo {
     private String tiempoEspera;
     private double total;
     private java.sql.Date fecha; // Changed to java.sql.Date to match diagram
+    private int idVehiculoFk; // Added to link to Vehiculo table
+    private String nombreMecanico; // Added to show mechanic name in views
 
     public OrdenTrabajo() {}
+
+    public int getIdVehiculoFk() {
+        return idVehiculoFk;
+    }
+
+    public void setIdVehiculoFk(int idVehiculoFk) {
+        this.idVehiculoFk = idVehiculoFk;
+    }
+
+    public String getNombreMecanico() {
+        return nombreMecanico;
+    }
+
+    public void setNombreMecanico(String nombreMecanico) {
+        this.nombreMecanico = nombreMecanico;
+    }
 
     public double getTotal() {
         return total;
