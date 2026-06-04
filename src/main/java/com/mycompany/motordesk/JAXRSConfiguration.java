@@ -1,5 +1,7 @@
+// Definición del paquete del proyecto
 package com.mycompany.motordesk;
 
+// Importación de dependencias y clases necesarias
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
@@ -8,6 +10,7 @@ import javax.ws.rs.core.Application;
  * @author Juneau
  */
 @ApplicationPath("resources")
+// Clase pública JAXRSConfiguration que gestiona la lógica correspondiente
 public class JAXRSConfiguration extends Application {
     
 }

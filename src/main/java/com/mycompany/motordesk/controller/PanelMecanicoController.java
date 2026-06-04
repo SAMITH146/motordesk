@@ -1,5 +1,7 @@
+// Definición del paquete del proyecto
 package com.mycompany.motordesk.controller;
 
+// Importación de dependencias y clases necesarias
 import com.mycompany.motordesk.dao.OrdenDAO;
 import com.mycompany.motordesk.dao.PanelMecanicoDAO;
 import com.mycompany.motordesk.dao.ProductoDAO;
@@ -12,7 +14,9 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
+// Anotación que define la ruta de acceso URL para este Servlet
 @WebServlet("/PanelMecanicoController")
+// Clase pública PanelMecanicoController que gestiona la lógica correspondiente
 public class PanelMecanicoController extends HttpServlet {
 
     private final PanelMecanicoDAO dashboardDao = new PanelMecanicoDAO();
@@ -26,6 +30,7 @@ public class PanelMecanicoController extends HttpServlet {
         HttpSession session = request.getSession();
         Empleado user = (Empleado) session.getAttribute("usuarioLogueado");
 
+        // Validación condicional
         if (user != null) {
             String docMecanico = user.getIdEmpleado();
             
@@ -45,10 +50,13 @@ public class PanelMecanicoController extends HttpServlet {
             
             // Check if edit is requested
             String action = request.getParameter("action");
+            // Validación condicional
             if ("edit".equals(action)) {
+                // Inicio del bloque try para control de excepciones
                 try {
                     int idOrden = Integer.parseInt(request.getParameter("id_orden"));
                     OrdenTrabajo ord = ordenDao.obtenerPorId(idOrden);
+                    // Validación condicional
                     if (ord != null && ord.getDocEmpleFk().equals(docMecanico)) {
                         request.setAttribute("ordenEditar", ord);
                         request.setAttribute("detallesEditar", ordenDao.obtenerDetallesDeOrden(idOrden));

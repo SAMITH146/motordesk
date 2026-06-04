@@ -1,5 +1,7 @@
+// Definición del paquete del proyecto
 package com.mycompany.motordesk.controller;
 
+// Importación de dependencias y clases necesarias
 import com.mycompany.motordesk.dao.AdminDAO;
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -8,7 +10,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+// Anotación que define la ruta de acceso URL para este Servlet
 @WebServlet("/AdminDashboard")
+// Clase pública AdminDashboardController que gestiona la lógica correspondiente
 public class AdminDashboardController extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

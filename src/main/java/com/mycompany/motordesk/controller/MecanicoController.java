@@ -1,5 +1,7 @@
+// Definición del paquete del proyecto
 package com.mycompany.motordesk.controller;
 
+// Importación de dependencias y clases necesarias
 import com.mycompany.motordesk.dao.EmpleadoDAO;
 import com.mycompany.motordesk.model.Empleado;
 
@@ -8,7 +10,9 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
+// Anotación que define la ruta de acceso URL para este Servlet
 @WebServlet("/MecanicoController")
+// Clase pública MecanicoController que gestiona la lógica correspondiente
 public class MecanicoController extends HttpServlet {
 
     @Override
@@ -18,7 +22,9 @@ public class MecanicoController extends HttpServlet {
         EmpleadoDAO dao = new EmpleadoDAO();
         
         String action = request.getParameter("action");
+        // Validación condicional
         if ("edit".equals(action)) {
+            // Inicio del bloque try para control de excepciones
             try {
                 String id = request.getParameter("id");
                 Empleado emp = dao.obtenerPorId(id);
@@ -40,11 +46,14 @@ public class MecanicoController extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
 
+        // Inicio del bloque try para control de excepciones
         try {
+            // Validación condicional
             if ("toggleState".equals(action)) {
                 String id = request.getParameter("id");
                 EmpleadoDAO dao = new EmpleadoDAO();
                 boolean ok = dao.toggleEstado(id);
+                // Validación condicional
                 if (ok) {
                     request.getSession().setAttribute("mensaje", "Estado del mecánico actualizado.");
                     request.getSession().setAttribute("tipoMensaje", "info");
@@ -57,6 +66,7 @@ public class MecanicoController extends HttpServlet {
                 String id = request.getParameter("id");
                 EmpleadoDAO dao = new EmpleadoDAO();
                 boolean ok = dao.eliminar(id);
+                // Validación condicional
                 if (ok) {
                     request.getSession().setAttribute("mensaje", "Mecánico eliminado correctamente.");
                     request.getSession().setAttribute("tipoMensaje", "success");
@@ -71,6 +81,7 @@ public class MecanicoController extends HttpServlet {
                 String pin = request.getParameter("pin_acceso");
                 EmpleadoDAO dao = new EmpleadoDAO();
                 
+                // Validación condicional
                 if (doc == null || doc.trim().length() < 9 || doc.trim().length() > 10) {
                     request.getSession().setAttribute("mensaje", "No se guardó porque no es un documento válido.");
                     request.getSession().setAttribute("tipoMensaje", "error");
@@ -87,6 +98,7 @@ public class MecanicoController extends HttpServlet {
 
                     boolean ok = dao.actualizar(emp);
 
+                    // Validación condicional
                     if (ok) {
                         request.getSession().setAttribute("mensaje", "Mecánico actualizado correctamente.");
                         request.getSession().setAttribute("tipoMensaje", "success");
@@ -102,6 +114,7 @@ public class MecanicoController extends HttpServlet {
                 String pin = request.getParameter("pin_acceso");
                 EmpleadoDAO dao = new EmpleadoDAO();
                 
+                // Validación condicional
                 if (doc == null || doc.trim().length() < 9 || doc.trim().length() > 10) {
                     request.getSession().setAttribute("mensaje", "No se guardó porque no es un documento válido. (Debe tener 9 o 10 dígitos)");
                     request.getSession().setAttribute("tipoMensaje", "error");
@@ -126,6 +139,7 @@ public class MecanicoController extends HttpServlet {
 
                     // guardar en BD
                     boolean ok = dao.insertar(emp);
+                    // Validación condicional
                     if (ok) {
                         request.getSession().setAttribute("mensaje", "Mecánico registrado exitosamente.");
                         request.getSession().setAttribute("tipoMensaje", "success");

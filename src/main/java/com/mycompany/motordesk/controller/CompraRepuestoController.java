@@ -1,5 +1,7 @@
+// Definición del paquete del proyecto
 package com.mycompany.motordesk.controller;
 
+// Importación de dependencias y clases necesarias
 import com.mycompany.motordesk.dao.CompraRepuestoDAO;
 import com.mycompany.motordesk.dao.ProductoDAO;
 import com.mycompany.motordesk.dao.ProveedorDAO;
@@ -17,7 +19,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+// Anotación que define la ruta de acceso URL para este Servlet
 @WebServlet(name = "CompraRepuestoController", urlPatterns = {"/admin/ingreso", "/admin/historialCompras"})
+// Clase pública CompraRepuestoController que gestiona la lógica correspondiente
 public class CompraRepuestoController extends HttpServlet {
 
     private ProveedorDAO proveedorDAO = new ProveedorDAO();
@@ -29,6 +33,7 @@ public class CompraRepuestoController extends HttpServlet {
             throws ServletException, IOException {
         String path = request.getServletPath();
 
+        // Validación condicional
         if (path.equals("/admin/ingreso")) {
             // Cargar listas para el formulario de ingreso
             List<Proveedor> proveedores = proveedorDAO.listarTodos();
@@ -50,7 +55,9 @@ public class CompraRepuestoController extends HttpServlet {
             throws ServletException, IOException {
         String path = request.getServletPath();
 
+        // Validación condicional
         if (path.equals("/admin/ingreso")) {
+            // Inicio del bloque try para control de excepciones
             try {
                 String nombreProveedor = request.getParameter("nombreProveedor");
                 String nombreProducto = request.getParameter("nombreProducto");
@@ -60,6 +67,7 @@ public class CompraRepuestoController extends HttpServlet {
                 String cantidadStr = request.getParameter("cantidad");
                 String costoUnitarioStr = request.getParameter("costoUnitario");
 
+                // Validación condicional
                 if (nombreProveedor == null || nombreProveedor.trim().isEmpty() ||
                     nombreProducto == null || nombreProducto.trim().isEmpty() ||
                     tipoVehiculo == null || tipoVehiculo.trim().isEmpty() ||
@@ -85,6 +93,7 @@ public class CompraRepuestoController extends HttpServlet {
                 Producto productoExistente = productoDAO.obtenerPorNombreExacto(nombreProducto);
                 int idRepuesto;
 
+                // Validación condicional
                 if (productoExistente != null) {
                     // El producto ya existe, actualizamos su precio y categoría para mantenerlo al día
                     idRepuesto = productoExistente.getIdProducto();
@@ -103,6 +112,7 @@ public class CompraRepuestoController extends HttpServlet {
                     nuevoProducto.setSeccion(seccion);
                     
                     idRepuesto = productoDAO.insertarDevolviendoId(nuevoProducto);
+                    // Validación condicional
                     if (idRepuesto == -1) {
                         throw new Exception("Fallo en la base de datos al crear el nuevo producto.");
                     }
@@ -126,6 +136,7 @@ public class CompraRepuestoController extends HttpServlet {
 
                 String dbError = compraRepuestoDAO.registrarCompra(compra, detalles);
 
+                // Validación condicional
                 if (dbError == null) {
                     request.setAttribute("mensaje", "Ingreso de producto registrado correctamente. El stock ha sido actualizado.");
                 } else {

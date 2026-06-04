@@ -103,6 +103,8 @@
                                     </div>
                                     </c:if>
                                 </c:if>
+
+                                <a href="${pageContext.request.contextPath}/OrdenController?action=verFactura&id_orden=${ord.idOrden}" class="admin-btn admin-btn--small" style="display:block; text-align:center; text-decoration:none; width: 100%; margin-top: 8px; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.4); color: #3b82f6;">Ver Factura</a>
                             </article>
                             </c:if>
                         </c:forEach>

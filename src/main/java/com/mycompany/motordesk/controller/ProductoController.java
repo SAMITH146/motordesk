@@ -1,5 +1,7 @@
+// Definición del paquete del proyecto
 package com.mycompany.motordesk.controller;
 
+// Importación de dependencias y clases necesarias
 import com.mycompany.motordesk.dao.ProductoDAO;
 import com.mycompany.motordesk.model.Producto;
 import java.io.IOException;
@@ -11,7 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+// Anotación que define la ruta de acceso URL para este Servlet
 @WebServlet("/ProductoController")
+// Clase pública ProductoController que gestiona la lógica correspondiente
 public class ProductoController extends HttpServlet {
 
     private final ProductoDAO dao = new ProductoDAO();
@@ -21,7 +25,9 @@ public class ProductoController extends HttpServlet {
             throws ServletException, IOException {
         
         String action = request.getParameter("action");
+        // Validación condicional
         if ("edit".equals(action)) {
+            // Inicio del bloque try para control de excepciones
             try {
                 int id = Integer.parseInt(request.getParameter("id"));
                 request.setAttribute("productoEditar", dao.obtenerPorId(id));
@@ -35,6 +41,7 @@ public class ProductoController extends HttpServlet {
         String fSeccion = request.getParameter("f_seccion");
 
         List<Producto> lista;
+        // Validación condicional
         if ((buscar != null && !buscar.isEmpty()) || 
             (fVehiculo != null && !fVehiculo.isEmpty()) || 
             (fSeccion != null && !fSeccion.isEmpty())) {
@@ -61,8 +68,10 @@ public class ProductoController extends HttpServlet {
         HttpSession session = request.getSession();
         String action = request.getParameter("action");
 
+        // Inicio del bloque try para control de excepciones
         try {
             Producto p = new Producto();
+            // Validación condicional
             if (request.getParameter("id") != null && !request.getParameter("id").isEmpty()) {
                 p.setIdProducto(Integer.parseInt(request.getParameter("id")));
             }
@@ -79,8 +88,10 @@ public class ProductoController extends HttpServlet {
 
             boolean exito = false;
 
+            // Validación condicional
             if ("delete".equals(action)) {
                 exito = dao.eliminar(p.getIdProducto());
+                // Validación condicional
                 if (exito) {
                     session.setAttribute("mensaje", "Producto eliminado correctamente.");
                     session.setAttribute("tipoMensaje", "success");
@@ -90,6 +101,7 @@ public class ProductoController extends HttpServlet {
                 }
             } else if (p.getIdProducto() > 0) {
                 exito = dao.actualizar(p);
+                // Validación condicional
                 if (exito) {
                     session.setAttribute("mensaje", "Producto actualizado con éxito.");
                     session.setAttribute("tipoMensaje", "success");
@@ -99,6 +111,7 @@ public class ProductoController extends HttpServlet {
                 }
             } else {
                 exito = dao.insertar(p);
+                // Validación condicional
                 if (exito) {
                     session.setAttribute("mensaje", "Producto registrado correctamente.");
                     session.setAttribute("tipoMensaje", "success");
