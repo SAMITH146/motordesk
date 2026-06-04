@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
@@ -20,23 +20,26 @@
     <title>Gestion de Productos | MotorDesk</title>
 </head>
 <body>
-    <header class="navbar">
+        <header class="navbar">
         <div class="navbar__logo">
             <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk" class="navbar__logo-img" />
         </div>
-        <nav class="navbar__menu">
+        <nav class="navbar__menu" aria-label="Menu principal">
             <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
-            <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecanicos</a>
+            <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecánicos</a>
             <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
+            <a href="${pageContext.request.contextPath}/ProveedorController" class="navbar__menu-item">Proveedores</a>
             <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item active">Productos</a>
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
-            <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Ordenes</a>
+            <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
         </nav>
         <div class="navbar__session">
-            <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
+            <div class="navbar__user-info">
+                <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
+            </div>
             <a href="#logoutModal" class="navbar__session-btn">
-                <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png" alt="Cerrar sesion" class="navbar__session-icon" />
+                <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png" alt="Cerrar sesión" class="navbar__session-icon" />
             </a>
         </div>
     </header>
@@ -177,21 +180,6 @@
                                                 <a href="${pageContext.request.contextPath}/ProductoController?action=edit&id=${p.idProducto}" class="admin-action-btn admin-action-btn--edit">Editar</a>
                                                 <a href="#deleteModalProd-${p.idProducto}" class="admin-action-btn admin-action-btn--delete">Borrar</a>
 
-                                                <!-- Delete Modal (CSS Only) -->
-                                                <div id="deleteModalProd-${p.idProducto}" class="modal-css">
-                                                    <div class="modal-content-css">
-                                                        <h2>¿Eliminar Producto?</h2>
-                                                        <p>Estás a punto de eliminar <strong>${p.nombreProducto}</strong>.<br>Esta acción no se puede deshacer.</p>
-                                                        <div class="modal-buttons-css">
-                                                            <a href="#" class="btn-modal-css btn-modal-css--cancel">Cancelar</a>
-                                                            <form action="${pageContext.request.contextPath}/ProductoController" method="post" style="display:inline;">
-                                                                <input type="hidden" name="action" value="delete" />
-                                                                <input type="hidden" name="id" value="${p.idProducto}" />
-                                                                <button type="submit" class="btn-modal-css btn-modal-css--confirm">Sí, Eliminar</button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -207,7 +195,26 @@
                 </table>
             </div>
         </section>
-    </main>
+
+        <!-- Delete Modals (Renderizados fuera de la tabla para evitar problemas de z-index) -->
+        <c:if test="${not empty requestScope.listaProductos}">
+            <c:forEach var="p" items="${requestScope.listaProductos}">
+                <div id="deleteModalProd-${p.idProducto}" class="modal-css">
+                    <div class="modal-content-css">
+                        <h2>¿Eliminar Producto?</h2>
+                        <p>Estás a punto de eliminar <strong>${p.nombreProducto}</strong>.<br>Esta acción no se puede deshacer.</p>
+                        <div class="modal-buttons-css">
+                            <a href="#" class="btn-modal-css btn-modal-css--cancel">Cancelar</a>
+                            <form action="${pageContext.request.contextPath}/ProductoController" method="post" style="display:inline;">
+                                <input type="hidden" name="action" value="delete" />
+                                <input type="hidden" name="id" value="${p.idProducto}" />
+                                <button type="submit" class="btn-modal-css btn-modal-css--confirm">Sí, Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </c:forEach>
+        </c:if>
 
     </main>
 
@@ -224,3 +231,4 @@
     </div>
 </body>
 </html>
+

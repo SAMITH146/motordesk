@@ -13,7 +13,7 @@ html {
 
 body {
   font-family: var(--fuente);
-  background: radial-gradient(circle at center, #8ee030 0%, #020617 70%, #0c1426 100%);
+  background: radial-gradient(circle at center, #051042 0%, #020617 70%, #0c1426 100%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   background-size: cover;

@@ -8,6 +8,7 @@ import com.mycompany.motordesk.dao.VehiculoDAO;
 import com.mycompany.motordesk.model.Cliente;
 import com.mycompany.motordesk.model.DetalleOrden;
 import com.mycompany.motordesk.model.OrdenTrabajo;
+import com.mycompany.motordesk.model.ServicioOrden;
 import com.mycompany.motordesk.model.Vehiculo;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class OrdenController extends HttpServlet {
             request.setAttribute("listaOrdenes", dao.listarTodas());
             request.getRequestDispatcher("/admin/gestionarOrdenes.jsp").forward(request, response);
         } 
-        // Acción de "Ver Factura": carga los datos de la orden, cliente, vehículo y repuestos asociados
+        // Acción de "Ver Factura": carga los datos de la orden, cliente, vehículo, repuestos y servicios
         else if ("verFactura".equals(action)) {
             // Inicio del bloque try para control de excepciones
             try {
@@ -56,12 +57,16 @@ public class OrdenController extends HttpServlet {
                     
                     // 5. Cargar los repuestos/detalles de los insumos consumidos en esta orden
                     List<DetalleOrden> detalles = dao.obtenerDetallesDeOrden(idOrden);
+
+                    // 6. Cargar los servicios de mano de obra de esta orden
+                    List<com.mycompany.motordesk.model.ServicioOrden> servicios = dao.obtenerServiciosDeOrden(idOrden);
                     
-                    // 6. Inyectar todos los objetos recuperados como atributos del Request para que la vista JSP pueda leerlos
+                    // 7. Inyectar todos los objetos recuperados como atributos del Request para que la vista JSP pueda leerlos
                     request.setAttribute("orden", ord);
                     request.setAttribute("vehiculo", v);
                     request.setAttribute("cliente", c);
                     request.setAttribute("detalles", detalles);
+                    request.setAttribute("servicios", servicios);
                     
                     // 7. Redirigir la petición de forma interna (Forward) hacia el JSP de la factura comercial
                     request.getRequestDispatcher("/admin/factura.jsp").forward(request, response);
@@ -94,6 +99,15 @@ public class OrdenController extends HttpServlet {
             if ("insert".equals(action)) {
                 // 1. Obtener los parámetros del Dueño (Cliente) del request
                 String docCliente = request.getParameter("doc_cliente");
+                
+                // Validar si el cliente ya tiene una orden abierta
+                if (dao.tieneOrdenAbiertaPorDocumento(docCliente)) {
+                    request.getSession().setAttribute("mensaje", "Error: Este cliente ya tiene una orden ABIERTA. No se puede crear otra orden a su nombre.");
+                    request.getSession().setAttribute("tipoMensaje", "error");
+                    response.sendRedirect(request.getContextPath() + "/PanelMecanicoController");
+                    return;
+                }
+
                 String nomCliente = request.getParameter("nom_cliente");
                 String dirCliente = request.getParameter("direccion_cliente");
                 
@@ -175,11 +189,35 @@ public class OrdenController extends HttpServlet {
                         }
                     }
                 }
+
+                // 5. Leer los servicios de mano de obra del formulario
+                String[] serviciosNom = request.getParameterValues("servicios[]");
+                String[] serviciosVal = request.getParameterValues("valoresServicio[]");
+
+                List<ServicioOrden> servicios = new ArrayList<>();
+                if (serviciosNom != null) {
+                    for (int i = 0; i < serviciosNom.length; i++) {
+                        if (serviciosNom[i] != null && !serviciosNom[i].trim().isEmpty()) {
+                            try {
+                                ServicioOrden s = new ServicioOrden();
+                                s.setNombre(serviciosNom[i].trim());
+                                // Leer valor; si está vacío o es 0, se registra como 0
+                                String valStr = (serviciosVal != null && serviciosVal.length > i
+                                                && serviciosVal[i] != null && !serviciosVal[i].trim().isEmpty())
+                                               ? serviciosVal[i].trim() : "0";
+                                s.setValor(Double.parseDouble(valStr));
+                                servicios.add(s);
+                            } catch (NumberFormatException e) {
+                                // Ignorar filas con valor no numérico
+                            }
+                        }
+                    }
+                }
                 
                 // Inicio del bloque try para control de excepciones
                 try {
-                    // 5. Invocar al DAO transaccional para crear la orden, registrar los detalles y descontar stock
-                    dao.insertarOrden(o, detalles);
+                    // 6. Invocar al DAO transaccional para crear la orden, registrar los detalles/servicios y descontar stock
+                    dao.insertarOrden(o, detalles, servicios);
                     request.getSession().setAttribute("mensaje", "Orden registrada exitosamente.");
                     request.getSession().setAttribute("tipoMensaje", "success");
                 } catch (Exception ex) {
@@ -225,11 +263,34 @@ public class OrdenController extends HttpServlet {
                             }
                         }
                     }
+
+                    // Leer los servicios de mano de obra en la edición
+                    String[] serviciosNom = request.getParameterValues("servicios[]");
+                    String[] serviciosVal = request.getParameterValues("valoresServicio[]");
+
+                    List<ServicioOrden> servicios = new ArrayList<>();
+                    if (serviciosNom != null) {
+                        for (int i = 0; i < serviciosNom.length; i++) {
+                            if (serviciosNom[i] != null && !serviciosNom[i].trim().isEmpty()) {
+                                try {
+                                    ServicioOrden s = new ServicioOrden();
+                                    s.setNombre(serviciosNom[i].trim());
+                                    String valStr = (serviciosVal != null && serviciosVal.length > i
+                                                    && serviciosVal[i] != null && !serviciosVal[i].trim().isEmpty())
+                                                   ? serviciosVal[i].trim() : "0";
+                                    s.setValor(Double.parseDouble(valStr));
+                                    servicios.add(s);
+                                } catch (NumberFormatException e) {
+                                    // Ignorar
+                                }
+                            }
+                        }
+                    }
                     
                     // Inicio del bloque try para control de excepciones
                     try {
-                        // Actualizar datos de la orden (recalcular total, devolver stock viejo y restar nuevo)
-                        dao.actualizarOrden(o, detalles);
+                        // Actualizar datos de la orden (recalcular total, devolver stock viejo y restar nuevo, reemplazar servicios)
+                        dao.actualizarOrden(o, detalles, servicios);
                         request.getSession().setAttribute("mensaje", "Orden actualizada exitosamente.");
                         request.getSession().setAttribute("tipoMensaje", "success");
                     } catch (Exception ex) {

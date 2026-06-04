@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
@@ -15,30 +15,27 @@
 </head>
 
 <body>
-    <header class="navbar">
-        <div class="navbar__logo">
-            <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk"
-                class="navbar__logo-img" />
-        </div>
 
+        <header class="navbar">
+        <div class="navbar__logo">
+            <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk" class="navbar__logo-img" />
+        </div>
         <nav class="navbar__menu" aria-label="Menu principal">
             <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
             <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecánicos</a>
             <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
+            <a href="${pageContext.request.contextPath}/ProveedorController" class="navbar__menu-item">Proveedores</a>
             <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item">Productos</a>
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item active">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
         </nav>
-
         <div class="navbar__session">
             <div class="navbar__user-info">
                 <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
-                <span class="navbar__user-role">${sessionScope.usuarioLogueado.idCargo}</span>
             </div>
             <a href="#logoutModal" class="navbar__session-btn">
-                <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png"
-                    alt="Cerrar sesión" class="navbar__session-icon" />
+                <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png" alt="Cerrar sesión" class="navbar__session-icon" />
             </a>
         </div>
     </header>
@@ -122,3 +119,4 @@
     </script>
 </body>
 </html>
+

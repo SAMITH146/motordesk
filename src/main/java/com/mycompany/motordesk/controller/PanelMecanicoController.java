@@ -60,6 +60,8 @@ public class PanelMecanicoController extends HttpServlet {
                     if (ord != null && ord.getDocEmpleFk().equals(docMecanico)) {
                         request.setAttribute("ordenEditar", ord);
                         request.setAttribute("detallesEditar", ordenDao.obtenerDetallesDeOrden(idOrden));
+                        // Cargar servicios de mano de obra para pre-llenar el formulario de edición
+                        request.setAttribute("serviciosEditar", ordenDao.obtenerServiciosDeOrden(idOrden));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

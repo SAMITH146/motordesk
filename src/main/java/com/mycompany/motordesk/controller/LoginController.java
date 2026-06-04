@@ -1,88 +1,75 @@
-// Definición del paquete del proyecto
+// Este archivo pertenece al paquete "controller" del proyecto MotorDesk
 package com.mycompany.motordesk.controller;
 
-// Importación de dependencias y clases necesarias
+// Importamos el DAO de empleados para poder consultar la base de datos
 import com.mycompany.motordesk.dao.EmpleadoDAO;
+// Importamos el modelo Empleado para trabajar con sus datos (nombre, rol, etc.)
 import com.mycompany.motordesk.model.Empleado;
+// Librería para manejar errores de entrada/salida (redirecciones, etc.)
 import java.io.IOException;
+// Clases base de los Servlets de Java
 import javax.servlet.*;
+// Anotación que convierte esta clase en un Servlet accesible por URL
 import javax.servlet.annotation.WebServlet;
+// Clases para manejar la sesión y la petición/respuesta HTTP
 import javax.servlet.http.*;
 
-// Controlador Servlet que maneja la autenticación de usuarios (Administradores y Mecánicos) por PIN
-// Anotación que define la ruta de acceso URL para este Servlet
+// Esta anotación le dice al servidor Tomcat que este Servlet responde
+// cuando alguien acceda a la URL: /LoginController
 @WebServlet("/LoginController")
-// Clase pública LoginController que gestiona la lógica correspondiente
+// Clase principal del inicio de sesión — extiende HttpServlet para ser un Servlet
 public class LoginController extends HttpServlet {
 
-    // Método doPost que responde a las peticiones POST enviadas por el formulario de login.jsp
+    // doPost se ejecuta cuando el usuario envía el formulario del login (botón "Ingresar")
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Obtener y recortar espacios en blanco del PIN ingresado en el formulario
+        // Leemos el PIN que el usuario escribió en el formulario y eliminamos espacios
         String pin = request.getParameter("pin").trim();
 
-        // 2. Instanciar el objeto DAO de acceso a datos para empleados
+        // Creamos una instancia del DAO para poder consultar la tabla empleado en MySQL
         EmpleadoDAO dao = new EmpleadoDAO();
-        
-        // 3. Consultar en la base de datos si existe un empleado activo con ese PIN
+
+        // Le preguntamos a la base de datos: ¿existe algún empleado activo con este PIN?
+        // Retorna un objeto Empleado si lo encuentra, o null si el PIN no existe
         Empleado emp = dao.loginPorPin(pin);
 
-        // 4. Evaluar si la autenticación fue exitosa
-        // Validación condicional
+        // Evaluamos si la autenticación fue exitosa (el PIN existía en la BD)
         if (emp != null) {
 
-            // 🔐 5. Obtener la sesión HTTP actual (o crear una nueva) y almacenar al empleado autenticado
+            // Creamos (o reutilizamos) la sesión HTTP del usuario
+            // La sesión es como una "caja" que el servidor mantiene abierta mientras el usuario navega
             HttpSession session = request.getSession();
+
+            // Guardamos el objeto Empleado dentro de la sesión con el nombre "usuarioLogueado"
+            // Cualquier JSP puede leer este dato con: ${sessionScope.usuarioLogueado.nombre}
             session.setAttribute("usuarioLogueado", emp);
 
-            // ================= RUTA PARA ADMINISTRADOR =================
-            // Validación condicional
+            // Verificamos el rol del empleado para enviarlo a la pantalla correcta
+            // Rol 1 = Administrador
             if (emp.getIdRol() == 1) {
-                // Redirigir al servlet que alimenta la vista del dashboard administrativo
+                // Redirigimos al servlet que prepara y muestra el Dashboard del Administrador
                 response.sendRedirect(request.getContextPath() + "/AdminDashboard");
             }
-            // ================= RUTA PARA MECÁNICO =================
+            // Rol 2 = Mecánico
             else if (emp.getIdRol() == 2) {
-                // Redirigir al servlet que maneja el panel de control del mecánico
-                response.sendRedirect(
-                        request.getContextPath() + "/PanelMecanicoController"
-                );
+                // Redirigimos al servlet que prepara el panel de trabajo del Mecánico
+                response.sendRedirect(request.getContextPath() + "/PanelMecanicoController");
             }
-            // ================= CASOS ESPECIALES DE ROL NO DEFINIDO =================
+            // Si el rol no es ni 1 ni 2, es un caso inesperado — mostramos error
             else {
                 request.setAttribute("mensajeError", "Error: Rol no válido asignado a este usuario (" + emp.getIdRol() + ").");
-                request.getRequestDispatcher("login.jsp")
-                        .forward(request, response);
+                // Volvemos al formulario de login con el mensaje de error visible
+                request.getRequestDispatcher("login.jsp").forward(request, response);
             }
 
         } else {
-            // ❌ 6. Si el PIN es incorrecto o el empleado está inactivo, mostrar error en login.jsp
+            // Si emp == null significa que el PIN no existe o el empleado está inactivo
+            // Colocamos el mensaje de error como atributo para que el JSP lo muestre
             request.setAttribute("mensajeError", "PIN NO ASOCIADO A NINGÚN ADMIN O MECÁNICO");
-            request.getRequestDispatcher("login.jsp")
-                    .forward(request, response);
+            // Reenviamos la petición de vuelta al login.jsp sin cambiar la URL del navegador
+            request.getRequestDispatcher("login.jsp").forward(request, response);
         }
     }
 }
-
-//        if (emp.getIdRol() == 0) {
-//            request.getRequestDispatcher("/admin/panelAdmin.jsp").forward(request, response);
-//            return;
-//
-//        } else if (emp.getIdRol() == 2) {
-//            request.getRequestDispatcher("/mecanico/panelMecanico.jsp").forward(request, response);
-//
-//        }
-//            return;
-//
-//    }
-//
-//    
-//        else {
-//
-//            request.setAttribute("mensajeError", "PIN incorrecto");
-//        request.getRequestDispatcher("login.jsp").forward(request, response);
-//    }
-//}
-//}

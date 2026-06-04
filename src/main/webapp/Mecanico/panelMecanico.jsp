@@ -215,17 +215,65 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Año</label>
-                            <input type="number" name="anio" class="form-input" placeholder="Ej: 2018" required min="1900" max="2100" />
+                            <input type="number" name="anio" class="form-input" placeholder="Ej: 2018" required min="1900" max="<%= java.time.Year.now().getValue() %>" title="El modelo no puede ser mayor al año actual" />
                         </div>
                     </div>
 
                     <!-- DATOS DEL SERVICIO -->
-                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #fff; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">3. Datos del Servicio</h3>
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: #fff; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">3. Servicios de Mano de Obra</h3>
+                    <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.8rem;">Agrega uno o más servicios que se realizarán en esta orden. Ej: Despinche, Revisión suspensión, Cambio de aceite.</p>
 
-                    <div class="form-group">
-                        <label class="form-label">Descripcion del Fallo / Servicio</label>
-                        <textarea name="descripcion" class="form-input" style="height: 100px; resize: none;" placeholder="Describa el problema reportado...">${not empty requestScope.ordenEditar ? requestScope.ordenEditar.descripcion : ''}</textarea>
+                    <div id="servicios-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+
+                        <%-- Pre-llenar servicios al editar --%>
+                        <c:choose>
+                            <c:when test="${not empty requestScope.serviciosEditar}">
+                                <c:forEach var="srv" items="${requestScope.serviciosEditar}" varStatus="loop">
+                                <div class="servicio-row" style="display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;">
+                                    <input type="text" name="servicios[]" class="form-input"
+                                           placeholder="Ej: Despinche llanta trasera"
+                                           value="${srv.nombre}"
+                                           ${loop.index == 0 ? 'required' : ''}
+                                           style="font-size:0.9rem;" />
+                                    <input type="number" name="valoresServicio[]" class="form-input"
+                                           placeholder="Valor $" min="0" step="100"
+                                           value="${srv.valor}"
+                                           style="font-size:0.9rem;" />
+                                    <c:if test="${loop.index > 0}">
+                                        <button type="button" onclick="eliminarServicio(this)"
+                                                style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:1rem;line-height:1;">🗑</button>
+                                    </c:if>
+                                    <c:if test="${loop.index == 0}">
+                                        <span style="width:34px;"></span>
+                                    </c:if>
+                                </div>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <%-- Fila inicial vacía para nuevas órdenes --%>
+                                <div class="servicio-row" style="display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;">
+                                    <input type="text" name="servicios[]" class="form-input"
+                                           placeholder="Ej: Despinche llanta trasera" required
+                                           style="font-size:0.9rem;" />
+                                    <input type="number" name="valoresServicio[]" class="form-input"
+                                           placeholder="Valor $" min="0" step="100"
+                                           style="font-size:0.9rem;" />
+                                    <span style="width:34px;"></span>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
+
+                    <button type="button" onclick="agregarServicio()"
+                            style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;
+                                   border-radius:8px;padding:7px 14px;cursor:pointer;font-size:0.85rem;
+                                   margin-bottom:1.2rem;transition:all .2s;">
+                        ➕ Agregar otro servicio
+                    </button>
+
+                    <%-- Campo oculto: resumen de descripción generado por JS al enviar el form --%>
+                    <input type="hidden" name="descripcion" id="descripcionResumen" />
+
 
                     <div class="form-group">
                         <label class="form-label">Productos Utilizados</label>
@@ -302,5 +350,50 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // ===== SERVICIOS DINÁMICOS =====
+
+        // Agrega una nueva fila de servicio al contenedor
+        function agregarServicio() {
+            var container = document.getElementById('servicios-container');
+            var fila = document.createElement('div');
+            fila.className = 'servicio-row';
+            fila.style.cssText = 'display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;';
+            fila.innerHTML =
+                '<input type="text" name="servicios[]" class="form-input" ' +
+                '       placeholder="Ej: Revisión de suspensión" style="font-size:0.9rem;" />' +
+                '<input type="number" name="valoresServicio[]" class="form-input" ' +
+                '       placeholder="Valor $" min="0" step="100" style="font-size:0.9rem;" />' +
+                '<button type="button" onclick="eliminarServicio(this)" ' +
+                '        style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);' +
+                '               color:#ef4444;border-radius:8px;padding:6px 10px;cursor:pointer;' +
+                '               font-size:1rem;line-height:1;">🗑</button>';
+            container.appendChild(fila);
+            // Foco en el nuevo campo de nombre
+            fila.querySelector('input[name="servicios[]"]').focus();
+        }
+
+        // Elimina la fila de servicio correspondiente
+        function eliminarServicio(btn) {
+            var fila = btn.closest('.servicio-row');
+            if (fila) fila.remove();
+        }
+
+        // Al enviar el formulario, genera automáticamente el campo descripcion
+        // como resumen legible de todos los servicios (para mantener compatibilidad con el campo descripcion de BD)
+        var orderForm = document.getElementById('orderForm');
+        if (orderForm) {
+            orderForm.addEventListener('submit', function() {
+                var inputs = document.querySelectorAll('#servicios-container input[name="servicios[]"]');
+                var nombres = [];
+                inputs.forEach(function(inp) {
+                    if (inp.value.trim()) nombres.push(inp.value.trim());
+                });
+                var resumen = nombres.length > 0 ? nombres.join(' | ') : 'Servicio general';
+                document.getElementById('descripcionResumen').value = resumen;
+            });
+        }
+    </script>
 </body>
 </html>

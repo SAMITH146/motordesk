@@ -377,9 +377,204 @@
             }
         }
     </style>
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        .factura-totals-box {
+            width: 320px;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .factura-total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .factura-total-row--grand {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 8px;
+            padding-top: 12px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #3b82f6;
+        }
+
+        .factura-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 2rem;
+            gap: 15px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .factura-watermark {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .factura-details-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .factura-card {
+                padding: 1.5rem;
+            }
+            .factura-header {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            .factura-header__meta {
+                text-align: left;
+            }
+            .factura-totals-box {
+                width: 100%;
+            }
+            .factura-actions {
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: stretch;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+
+        /* ===== IMPRESIÓN LIMPIA ===== */
+        @media print {
+            body {
+                background: #fff !important;
+                color: #000 !important;
+                font-family: Arial, sans-serif !important;
+            }
+            
+            .navbar, 
+            .navbar__menu, 
+            .navbar__session, 
+            .navbar__logo, 
+            .factura-actions,
+            #logoutModal {
+                display: none !important;
+            }
+            
+            .admin-main {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            
+            .factura-card {
+                background: #fff !important;
+                border: none !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                color: #000 !important;
+                margin: 0 !important;
+            }
+
+            .factura-header {
+                border-bottom: 2px solid #000 !important;
+                padding-bottom: 1.5rem !important;
+                margin-bottom: 1.5rem !important;
+            }
+
+            .factura-header__logo-text {
+                color: #000 !important;
+            }
+
+            .factura-header__info {
+                color: #333 !important;
+            }
+
+            .factura-header__meta-title {
+                color: #000 !important;
+            }
+
+            .factura-header__meta-id {
+                color: #000 !important;
+            }
+
+            .factura-header__meta-text {
+                color: #333 !important;
+            }
+
+            .factura-status {
+                border: 1px solid #000 !important;
+                color: #000 !important;
+                background: none !important;
+            }
+
+            .factura-section-block {
+                background: #fff !important;
+                border: 1px solid #ccc !important;
+                color: #000 !important;
+            }
+
+            .factura-section-block__title {
+                color: #000 !important;
+                border-bottom: 1px solid #000 !important;
+            }
+
+            .factura-section-block__label {
+                color: #333 !important;
+            }
+
+            .factura-section-block__val {
+                color: #000 !important;
+            }
+
+            .factura-items-table th {
+                background: #f1f5f9 !important;
+                color: #000 !important;
+                border-bottom: 2px solid #000 !important;
+            }
+
+            .factura-items-table td {
+                color: #000 !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+            }
+
+            .factura-totals-box {
+                background: #fff !important;
+                border: 1px solid #ccc !important;
+                color: #000 !important;
+            }
+
+            .factura-total-row--grand {
+                border-top: 1px solid #000 !important;
+                color: #000 !important;
+            }
+
+            .factura-watermark {
+                display: block;
+                position: absolute;
+                top: 40%;
+                left: 20%;
+                transform: rotate(-30deg);
+                font-size: 6rem;
+                font-weight: 900;
+                opacity: 0.08;
+                color: #000;
+                pointer-events: none;
+                text-transform: uppercase;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header class="navbar">
+        <header class="navbar">
         <div class="navbar__logo">
             <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk" class="navbar__logo-img" />
         </div>
@@ -387,19 +582,21 @@
             <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
             <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecánicos</a>
             <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
+            <a href="${pageContext.request.contextPath}/ProveedorController" class="navbar__menu-item">Proveedores</a>
             <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item">Productos</a>
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
-            <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item active">Órdenes</a>
+            <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
         </nav>
         <div class="navbar__session">
-            <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
+            <div class="navbar__user-info">
+                <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
+            </div>
             <a href="#logoutModal" class="navbar__session-btn">
                 <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png" alt="Cerrar sesión" class="navbar__session-icon" />
             </a>
         </div>
     </header>
-
     <main class="admin-main fade-in">
         <header class="admin-section__header">
             <h1 class="admin-section__title">Factura de Servicio</h1>
@@ -421,7 +618,7 @@
                         NIT: 900.123.456-7<br/>
                         Dirección: Av. Principal Calle 45 #12-34<br/>
                         Teléfono: 300 987 6543 | info@motordesk.com<br/>
-                        <em>Bogotá D.C., Colombia</em>
+                        <em>Bucaramanga, Santander, Colombia</em>
                     </div>
                 </div>
 
@@ -480,19 +677,52 @@
                 <table class="factura-items-table">
                     <thead>
                         <tr>
-                            <th>Cód. Producto</th>
-                            <th>Descripción / Repuesto</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
                             <th style="text-align: center;">Cantidad</th>
                             <th style="text-align: right;">Precio Unitario</th>
                             <th style="text-align: right;">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <%-- ===== SERVICIOS DE MANO DE OBRA ===== --%>
+                        <c:choose>
+                            <c:when test="${not empty requestScope.servicios}">
+                                <c:forEach var="srv" items="${requestScope.servicios}">
+                                    <tr>
+                                        <td style="opacity:0.5; font-size:0.8rem;">SERVICIO</td>
+                                        <td>
+                                            <span style="display:inline-block; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:20px; font-size:0.75rem; margin-right:6px;">Mano de Obra</span>
+                                            ${srv.nombre}
+                                        </td>
+                                        <td style="text-align: center;">1</td>
+                                        <td style="text-align: right;"><fmt:formatNumber value="${srv.valor}" type="currency" currencySymbol="$" /></td>
+                                        <td style="text-align: right; font-weight: 700;"><fmt:formatNumber value="${srv.valor}" type="currency" currencySymbol="$" /></td>
+                                    </tr>
+                                </c:forEach>
+                            </c:when>
+                            <c:otherwise>
+                                <tr>
+                                    <td colspan="5" style="text-align:center; opacity:0.4; padding:1rem; font-size:0.85rem; font-style:italic;">Sin servicios de mano de obra registrados.</td>
+                                </tr>
+                            </c:otherwise>
+                        </c:choose>
+
+                        <%-- ===== SEPARADOR REPUESTOS ===== --%>
+                        <c:if test="${not empty requestScope.detalles}">
+                            <tr>
+                                <td colspan="5" style="padding:4px 15px; background:rgba(255,255,255,0.02); border-bottom:1px dashed rgba(255,255,255,0.06);">
+                                    <span style="font-size:0.75rem; color:#475569; text-transform:uppercase; letter-spacing:1px;">Repuestos y Materiales</span>
+                                </td>
+                            </tr>
+                        </c:if>
+
+                        <%-- ===== REPUESTOS ===== --%>
                         <c:choose>
                             <c:when test="${not empty requestScope.detalles}">
                                 <c:forEach var="d" items="${requestScope.detalles}">
                                     <tr>
-                                        <td>#${d.idProductoFk}</td>
+                                        <td style="opacity:0.5; font-size:0.8rem;">#${d.idProductoFk}</td>
                                         <td>${d.nombreProducto}</td>
                                         <td style="text-align: center;">${d.cantidad}</td>
                                         <td style="text-align: right;"><fmt:formatNumber value="${d.subtotal / d.cantidad}" type="currency" currencySymbol="$" /></td>
@@ -502,7 +732,7 @@
                             </c:when>
                             <c:otherwise>
                                 <tr>
-                                    <td colspan="5" style="text-align: center; opacity: 0.5; padding: 2rem;">No se registraron repuestos en esta orden de servicio.</td>
+                                    <td colspan="5" style="text-align:center; opacity:0.5; padding:1rem; font-style:italic; font-size:0.85rem;">No se registraron repuestos en esta orden.</td>
                                 </tr>
                             </c:otherwise>
                         </c:choose>
@@ -539,7 +769,7 @@
                 <div class="btn-group">
                     <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="admin-btn admin-btn--danger back-btn" style="box-shadow:none;">Volver a Órdenes</a>
                     <button onclick="window.print();" class="admin-btn print-btn" style="box-shadow:none;">🖨️ Imprimir Factura</button>
-                    
+
                     <c:if test="${orden.estado == 'TERMINADO'}">
                         <form action="${pageContext.request.contextPath}/OrdenController" method="post" style="display:inline;">
                             <input type="hidden" name="action" value="updateStatus" />

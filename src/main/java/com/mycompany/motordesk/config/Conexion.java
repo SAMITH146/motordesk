@@ -15,7 +15,7 @@ public class Conexion {
 
     // Credenciales de acceso de la base de datos
     private static final String USER = "root";
-    private static final String PASSWORD ="COMPUTER.777";
+    private static final String PASSWORD ="#Aprendiz2024";
 
     // Método estático para obtener la conexión física de la base de datos
     // Método Getter para recuperar el valor de Conexion

@@ -158,21 +158,6 @@
                                                         </form>
                                                         <a href="#deleteModal-${mecanico.idEmpleado}" class="admin-action-btn admin-action-btn--delete" title="Eliminar">🗑️ Eliminar</a>
 
-                                                        <!-- Delete Modal (CSS Only) -->
-                                                        <div id="deleteModal-${mecanico.idEmpleado}" class="modal-css">
-                                                            <div class="modal-content-css">
-                                                                <h2>¿Eliminar Mecánico?</h2>
-                                                                <p>Estás a punto de eliminar a <strong>${mecanico.nombre}</strong>.<br>Esta acción no se puede deshacer.</p>
-                                                                <div class="modal-buttons-css">
-                                                                    <a href="#" class="btn-modal-css btn-modal-css--cancel">Cancelar</a>
-                                                                    <form action="${pageContext.request.contextPath}/MecanicoController" method="post" style="display:inline;">
-                                                                        <input type="hidden" name="action" value="delete">
-                                                                        <input type="hidden" name="id" value="${mecanico.idEmpleado}">
-                                                                        <button type="submit" class="btn-modal-css btn-modal-css--confirm">Sí, Eliminar</button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -237,6 +222,26 @@
                         </form>
                     </article>
                 </section>
+
+                <!-- Delete Modals (Renderizados fuera de la tabla para evitar problemas de z-index) -->
+                <c:if test="${not empty requestScope.listaMecanicos}">
+                    <c:forEach var="mecanico" items="${requestScope.listaMecanicos}">
+                        <div id="deleteModal-${mecanico.idEmpleado}" class="modal-css">
+                            <div class="modal-content-css">
+                                <h2>¿Eliminar Mecánico?</h2>
+                                <p>Estás a punto de eliminar a <strong>${mecanico.nombre}</strong>.<br>Esta acción no se puede deshacer.</p>
+                                <div class="modal-buttons-css">
+                                    <a href="#" class="btn-modal-css btn-modal-css--cancel">Cancelar</a>
+                                    <form action="${pageContext.request.contextPath}/MecanicoController" method="post" style="display:inline;">
+                                        <input type="hidden" name="action" value="delete">
+                                        <input type="hidden" name="id" value="${mecanico.idEmpleado}">
+                                        <button type="submit" class="btn-modal-css btn-modal-css--confirm">Sí, Eliminar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:if>
             </main>
 
             <!-- Log out Modal (CSS Only) -->

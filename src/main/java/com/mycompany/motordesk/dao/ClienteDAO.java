@@ -1,9 +1,11 @@
-// Definición del paquete del proyecto
+// Este archivo pertenece al paquete "dao" — la capa que habla directamente con MySQL
 package com.mycompany.motordesk.dao;
 
-// Importación de dependencias y clases necesarias
+// Importamos la clase que nos da la conexión a MySQL (usuario, contraseña, URL de la BD)
 import com.mycompany.motordesk.config.Conexion;
+// Importamos el modelo Cliente para poder convertir filas de BD en objetos Java
 import com.mycompany.motordesk.model.Cliente;
+// Clases estándar de Java para trabajar con bases de datos
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,106 +13,120 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-// Clase pública ClienteDAO que gestiona la lógica correspondiente
+// Clase que contiene todos los métodos para leer y escribir clientes en MySQL
 public class ClienteDAO {
 
-    // Método público 'insertar'
+    // -----------------------------------------------------------------------
+    // MÉTODO: insertar — Guarda un cliente nuevo en la base de datos
+    // Retorna el ID que MySQL le asignó automáticamente (AUTO_INCREMENT)
+    // -----------------------------------------------------------------------
     public int insertar(Cliente cliente) {
+        // Empezamos con -1; si algo falla, retornaremos este valor como señal de error
         int idGenerado = -1;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+
+        // La consulta SQL con '?' como marcadores de posición — NUNCA concatenamos texto
+        // directamente porque eso abre la puerta a ataques de inyección SQL
         String sql = "INSERT INTO cliente (nom_cliente, doc_cliente, direccion_cliente) VALUES (?, ?, ?)";
-        
-        // Obtención de la conexión física a la base de datos MySQL
+
+        // try-with-resources: Java cierra la conexión automáticamente al terminar, sin importar si hubo error
+        // RETURN_GENERATED_KEYS le pide a MySQL que nos devuelva el ID que generó
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            ps.setString(1, cliente.getNombre());
-            ps.setString(2, cliente.getDocumento());
-            ps.setString(3, cliente.getDireccion());
-            
-            // Validación condicional
+
+            // Reemplazamos cada '?' con el valor real del cliente
+            ps.setString(1, cliente.getNombre());   // Primer '?' = nombre
+            ps.setString(2, cliente.getDocumento()); // Segundo '?' = documento
+            ps.setString(3, cliente.getDireccion()); // Tercer '?' = dirección
+
+            // executeUpdate() ejecuta el INSERT y retorna cuántas filas afectó (esperamos 1)
             if (ps.executeUpdate() > 0) {
-                // Objeto ResultSet para almacenar los resultados del query de base de datos
+                // Leemos el ID que MySQL generó automáticamente para este nuevo cliente
                 try (ResultSet rs = ps.getGeneratedKeys()) {
-                    // Validación condicional
                     if (rs.next()) {
-                        idGenerado = rs.getInt(1);
-                        cliente.setIdCliente(idGenerado);
+                        idGenerado = rs.getInt(1); // Guardamos ese ID en nuestra variable
+                        cliente.setIdCliente(idGenerado); // También lo guardamos en el objeto
                     }
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Si algo falla, imprimimos el error en la consola del servidor
         }
-        // Retornar el valor obtenido
-        return idGenerado;
+
+        return idGenerado; // Devolvemos el ID generado (o -1 si falló)
     }
 
-    // Método público 'obtenerPorDocumento'
+    // -----------------------------------------------------------------------
+    // MÉTODO: obtenerPorDocumento — Busca un cliente por su número de cédula/documento
+    // Lo usamos al crear una orden para saber si el cliente ya existe en el sistema
+    // -----------------------------------------------------------------------
     public Cliente obtenerPorDocumento(String documento) {
-        Cliente c = null;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        Cliente c = null; // Si no encontramos nada, retornaremos null
+
+        // Buscamos en la tabla cliente el registro que tenga este documento
         String sql = "SELECT * FROM cliente WHERE doc_cliente = ?";
-        // Obtención de la conexión física a la base de datos MySQL
+
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setString(1, documento);
-            // Objeto ResultSet para almacenar los resultados del query de base de datos
+
+            ps.setString(1, documento); // Reemplazamos el '?' con el documento buscado
+
             try (ResultSet rs = ps.executeQuery()) {
-                // Validación condicional
+                // Si encontramos una fila que coincide, construimos el objeto Cliente con esos datos
                 if (rs.next()) {
                     c = new Cliente(
-                        rs.getInt("id_cliente"),
-                        rs.getString("nom_cliente"),
-                        rs.getString("doc_cliente"),
-                        rs.getString("direccion_cliente")
+                        rs.getInt("id_cliente"),          // Leemos la columna id_cliente
+                        rs.getString("nom_cliente"),       // Leemos la columna nom_cliente
+                        rs.getString("doc_cliente"),       // Leemos la columna doc_cliente
+                        rs.getString("direccion_cliente")  // Leemos la columna direccion_cliente
                     );
                 }
+                // Si no hay ninguna fila, 'c' sigue siendo null — el llamador lo maneja
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
-        return c;
+
+        return c; // Retornamos el objeto Cliente encontrado (o null si no existe)
     }
 
-    // Método público 'actualizar'
+    // -----------------------------------------------------------------------
+    // MÉTODO: actualizar — Modifica los datos de un cliente ya existente en la BD
+    // Lo usamos cuando un cliente vuelve pero cambió su nombre o dirección
+    // -----------------------------------------------------------------------
     public boolean actualizar(Cliente cliente) {
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Solo actualizamos nombre y dirección — el documento es nuestra clave de búsqueda (no cambia)
         String sql = "UPDATE cliente SET nom_cliente = ?, direccion_cliente = ? WHERE doc_cliente = ?";
-        // Obtención de la conexión física a la base de datos MySQL
+
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setString(1, cliente.getNombre());
-            ps.setString(2, cliente.getDireccion());
-            ps.setString(3, cliente.getDocumento());
-            
-            // Retornar el valor obtenido
+
+            ps.setString(1, cliente.getNombre());    // Nuevo nombre
+            ps.setString(2, cliente.getDireccion()); // Nueva dirección
+            ps.setString(3, cliente.getDocumento()); // Documento para el WHERE (identificador)
+
+            // executeUpdate() > 0 significa que sí se modificó al menos una fila — retornamos true
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
-            // Retornar el valor obtenido
-            return false;
+            return false; // Si hubo error, retornamos false
         }
     }
 
+    // -----------------------------------------------------------------------
+    // MÉTODO: listarTodos — Trae TODOS los clientes de la BD para mostrarlos en la tabla
+    // -----------------------------------------------------------------------
     public List<Cliente> listarTodos() {
+        // Creamos una lista vacía donde iremos acumulando los clientes que encontremos
         List<Cliente> lista = new ArrayList<>();
-        // Definición de la sentencia SQL para ejecutar en la base de datos
-        String sql = "SELECT * FROM cliente";
-        // Obtención de la conexión física a la base de datos MySQL
+        String sql = "SELECT * FROM cliente"; // Sin filtros — traemos todos los registros
+
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql);
-             // Objeto ResultSet para almacenar los resultados del query de base de datos
-             ResultSet rs = ps.executeQuery()) {
-            
+             ResultSet rs = ps.executeQuery()) { // Ejecutamos la consulta directamente
+
+            // Recorremos cada fila del resultado con un bucle while
             while (rs.next()) {
+                // Por cada fila, creamos un objeto Cliente y lo agregamos a la lista
                 lista.add(new Cliente(
                     rs.getInt("id_cliente"),
                     rs.getString("nom_cliente"),
@@ -121,32 +137,28 @@ public class ClienteDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
-        return lista;
+
+        return lista; // Devolvemos la lista completa de clientes
     }
 
-    // Método para obtener un Cliente por su ID primario autoincremental
-    // Método público 'obtenerPorId'
+    // -----------------------------------------------------------------------
+    // MÉTODO: obtenerPorId — Busca un cliente por su ID numérico interno de la BD
+    // Lo usa la factura: Orden → Vehículo → id_cliente_fk → aquí buscamos el cliente
+    // -----------------------------------------------------------------------
     public Cliente obtenerPorId(int id) {
-        Cliente c = null; // Inicializamos el objeto de retorno como nulo
-        // Definición de la sentencia SQL para ejecutar en la base de datos
-        String sql = "SELECT * FROM cliente WHERE id_cliente = ?"; // Sentencia SQL con parámetro (?) para evitar inyección SQL
-        
-        // Abrimos la conexión y preparamos la consulta dentro de un try-with-resources para el cierre automático
-        // Obtención de la conexión física a la base de datos MySQL
+        Cliente c = null; // Valor por defecto: no encontrado
+
+        // El '?' será reemplazado por el ID que nos pasen como parámetro
+        String sql = "SELECT * FROM cliente WHERE id_cliente = ?";
+
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setInt(1, id); // Asignamos el ID del parámetro al primer '?' de la consulta SQL
-            
-            // Ejecutamos la consulta y recorremos el resultado (ResultSet)
-            // Objeto ResultSet para almacenar los resultados del query de base de datos
+
+            ps.setInt(1, id); // Ponemos el ID en el lugar del '?'
+
             try (ResultSet rs = ps.executeQuery()) {
-                // Validación condicional
-                if (rs.next()) { // Si encuentra una fila que coincida
-                    // Instanciamos el objeto Cliente mapeando las columnas de la tabla de la BD
-                    c = new Cliente(
+                if (rs.next()) { // Si encontramos al cliente con ese ID
+                    c = new Cliente( // Construimos el objeto con los datos de la BD
                         rs.getInt("id_cliente"),
                         rs.getString("nom_cliente"),
                         rs.getString("doc_cliente"),
@@ -155,9 +167,9 @@ public class ClienteDAO {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Imprime errores en la consola en caso de fallo de conexión o sintaxis SQL
+            e.printStackTrace();
         }
-        // Retornar el valor obtenido
-        return c; // Retorna el objeto Cliente (o nulo si no se encontró)
+
+        return c; // Retornamos el cliente (o null si no existe ese ID)
     }
 }

@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="es">
@@ -41,29 +41,26 @@
 </head>
 
 <body>
-    <header class="navbar">
+        <header class="navbar">
         <div class="navbar__logo">
-            <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk"
-                class="navbar__logo-img" />
+            <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk" class="navbar__logo-img" />
         </div>
-
         <nav class="navbar__menu" aria-label="Menu principal">
             <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
             <a href="${pageContext.request.contextPath}/MecanicoController" class="navbar__menu-item">Mecánicos</a>
             <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item active">Clientes</a>
+            <a href="${pageContext.request.contextPath}/ProveedorController" class="navbar__menu-item">Proveedores</a>
             <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item">Productos</a>
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
         </nav>
-
         <div class="navbar__session">
             <div class="navbar__user-info">
                 <span class="navbar__user-name">${sessionScope.usuarioLogueado.nombre}</span>
             </div>
             <a href="#logoutModal" class="navbar__session-btn">
-                <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png"
-                    alt="Cerrar sesión" class="navbar__session-icon" />
+                <img src="${pageContext.request.contextPath}/LogoI_mg/cerrarseccion_blanco.png" alt="Cerrar sesión" class="navbar__session-icon" />
             </a>
         </div>
     </header>
@@ -133,48 +130,42 @@
                 </table>
             </div>
 
-            <article id="formCliente" class="admin-form-section">
-                <h3 class="admin-form-section__title">${not empty requestScope.clienteEditar ? 'Editar Cliente' : 'Registrar Cliente'}</h3>
-                <form class="admin-form" action="${pageContext.request.contextPath}/ClienteController"
-                    method="post">
+            <c:if test="${not empty requestScope.clienteEditar}">
+                <article id="formCliente" class="admin-form-section">
+                    <h3 class="admin-form-section__title">Editar Cliente</h3>
+                    <form class="admin-form" action="${pageContext.request.contextPath}/ClienteController"
+                        method="post">
 
-                    <input type="hidden" name="action" value="update">
+                        <input type="hidden" name="action" value="update">
 
-                    <div class="admin-form__group">
-                        <label class="admin-form__label" for="doc_cliente">Documento:</label>
-                        <input class="admin-form__input" type="text" id="doc_cliente" name="doc_cliente" required
-                            placeholder="Ej: 123456789" value="${requestScope.clienteEditar.documento}" ${not empty requestScope.clienteEditar ? 'readonly' : ''}
-                            minlength="6" maxlength="15" pattern="\d+" title="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                    </div>
+                        <div class="admin-form__group">
+                            <label class="admin-form__label" for="doc_cliente">Documento:</label>
+                            <input class="admin-form__input" type="text" id="doc_cliente" name="doc_cliente" required
+                                placeholder="Ej: 123456789" value="${requestScope.clienteEditar.documento}" readonly
+                                minlength="6" maxlength="15" pattern="\d+" title="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        </div>
 
-                    <div class="admin-form__group">
-                        <label class="admin-form__label" for="nom_cliente">Nombre Completo:</label>
-                        <input class="admin-form__input" type="text" id="nom_cliente" name="nom_cliente"
-                            required placeholder="Nombre y Apellidos" value="${requestScope.clienteEditar.nombre}" autocomplete="off"
-                            pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras y espacios" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
-                    </div>
+                        <div class="admin-form__group">
+                            <label class="admin-form__label" for="nom_cliente">Nombre Completo:</label>
+                            <input class="admin-form__input" type="text" id="nom_cliente" name="nom_cliente"
+                                required placeholder="Nombre y Apellidos" value="${requestScope.clienteEditar.nombre}" autocomplete="off"
+                                pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras y espacios" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
+                        </div>
 
-                    <div class="admin-form__group">
-                        <label class="admin-form__label" for="direccion_cliente">Dirección:</label>
-                        <input class="admin-form__input" type="text" id="direccion_cliente" name="direccion_cliente"
-                            required placeholder="Dirección del cliente" value="${requestScope.clienteEditar.direccion}" autocomplete="off">
-                    </div>
+                        <div class="admin-form__group">
+                            <label class="admin-form__label" for="direccion_cliente">Dirección:</label>
+                            <input class="admin-form__input" type="text" id="direccion_cliente" name="direccion_cliente"
+                                required placeholder="Dirección del cliente" value="${requestScope.clienteEditar.direccion}" autocomplete="off">
+                        </div>
 
-                    <div class="admin-form__actions">
-                        <c:choose>
-                            <c:when test="${not empty requestScope.clienteEditar}">
-                                <a href="${pageContext.request.contextPath}/ClienteController" class="admin-btn admin-btn--danger" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancelar</a>
-                                <button type="submit" class="admin-btn">Actualizar Cambios</button>
-                            </c:when>
-                            <c:otherwise>
-                                <button type="reset" class="admin-btn admin-btn--danger">Limpiar</button>
-                                <button type="submit" class="admin-btn" disabled title="Los clientes son registrados por el mecánico durante la creación de la orden" style="opacity:0.5; cursor:not-allowed;">Solo Edición Permitida</button>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
+                        <div class="admin-form__actions">
+                            <a href="${pageContext.request.contextPath}/ClienteController" class="admin-btn admin-btn--danger" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancelar</a>
+                            <button type="submit" class="admin-btn">Actualizar Cambios</button>
+                        </div>
 
-                </form>
-            </article>
+                    </form>
+                </article>
+            </c:if>
         </section>
     </main>
 
@@ -191,3 +182,4 @@
     </div>
 </body>
 </html>
+
