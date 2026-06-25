@@ -387,10 +387,29 @@ body {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* Evitar fondo blanco en selects oscuros en navegadores webkit */
-.admin-form__select option {
-  background-color: var(--color-fondo-navbar);
-  color: var(--color-letra2);
+/* =========================================================================
+   FIX GLOBAL: opciones de select visibles en tema oscuro
+   Aplica a TODOS los selects del proyecto sin importar la clase
+   ========================================================================= */
+select option,
+.admin-form__select option,
+.admin-form__input option,
+.form-input option,
+.admin-btn option {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* Opción resaltada (hover / seleccionada) */
+select option:hover,
+select option:focus,
+select option:checked,
+.admin-form__select option:checked,
+.admin-form__input option:checked,
+.form-input option:checked,
+.admin-btn option:checked {
+  background-color: #3b82f6;
+  color: #ffffff;
 }
 
 .admin-form__actions {

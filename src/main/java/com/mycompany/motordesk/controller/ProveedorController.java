@@ -7,9 +7,22 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 
+/**
+ * Este es nuestro Controlador encargado de gestionar nuestros proveedores de repuestos.
+ * Aquí permitimos las operaciones CRUD básicas sobre la tabla de proveedores.
+ */
 @WebServlet("/ProveedorController")
 public class ProveedorController extends HttpServlet {
 
+    /**
+     * En nuestro método doGet manejamos las peticiones HTTP GET.
+     * Aquí listamos todos nuestros proveedores y, si corresponde, cargamos los datos para editar.
+     * 
+     * @param request La petición HTTP que recibimos.
+     * @param response La respuesta HTTP que enviaremos.
+     * @throws ServletException Si ocurre un error en nuestro Servlet.
+     * @throws IOException Si ocurre un error de E/S durante el proceso.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -28,11 +41,20 @@ public class ProveedorController extends HttpServlet {
             }
         }
 
-        // Siempre cargamos la lista
+        // Siempre nos aseguramos de cargar la lista
         request.setAttribute("listaProveedores", dao.listarTodos());
         request.getRequestDispatcher("/admin/gestionarProveedores.jsp").forward(request, response);
     }
 
+    /**
+     * En nuestro método doPost manejamos las peticiones HTTP POST.
+     * Aquí procesamos el alta, edición y eliminación de un proveedor en nuestro sistema.
+     * 
+     * @param request La petición HTTP que recibimos.
+     * @param response La respuesta HTTP que enviaremos.
+     * @throws ServletException Si ocurre un error en nuestro Servlet.
+     * @throws IOException Si ocurre un error de E/S durante el proceso.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

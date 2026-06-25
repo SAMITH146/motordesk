@@ -1,12 +1,20 @@
 // Definición del paquete del proyecto
 package com.mycompany.motordesk.model;
 
-// Clase pública Proveedor que gestiona la lógica correspondiente
+/**
+ * Clase pública Proveedor que representa a las empresas o personas que suministran repuestos al taller.
+ * Gestiona la información de contacto y el nombre del proveedor.
+ */
 public class Proveedor {
+    // Identificador único del proveedor (llave primaria)
     private int idProveedor;
+    // Nombre comercial o razón social de la empresa proveedora
     private String nombreProveedor;
+    // Nombre de la persona de contacto dentro de la empresa proveedora
     private String contacto;
+    // Número telefónico para contactar al proveedor
     private String telefono;
+    // Dirección de correo electrónico del proveedor
     private String correo;
 
     // Constructor por defecto (vacío)

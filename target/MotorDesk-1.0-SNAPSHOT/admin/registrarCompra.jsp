@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="es">
@@ -28,6 +28,7 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item active">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -51,19 +52,7 @@
                     ${requestScope.mensaje}
                 </div>
             </c:if>
-            <c:if test="${not empty requestScope.mensajeError}">
-                <div class="alert alert-error" style="background:#e74c3c; color:white; padding:15px; border-radius:5px; margin-bottom:20px;">
-                    ${requestScope.mensajeError}
-                </div>
-            </c:if>
-
-            <article class="admin-card">
-                <form action="${pageContext.request.contextPath}/admin/ingreso" method="post" style="display: flex; flex-direction: column; gap: 1.5rem;">
-                    
-                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                        <label for="nombreProveedor" style="font-weight: 600;">Nombre del Proveedor (Seleccione o escriba uno nuevo)</label>
-                        <input list="proveedoresList" name="nombreProveedor" id="nombreProveedor" required class="admin-btn" style="text-align: left; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);" placeholder="Escriba el nombre del proveedor...">
-                        <datalist id="proveedoresList">
+                            <%-- Con este c:forEach iteramos la lista de proveedores para las sugerencias del campo proveedor --%>
                             <c:forEach var="prov" items="${requestScope.proveedores}">
                                 <option value="${prov.nombreProveedor}"></option>
                             </c:forEach>
@@ -72,8 +61,10 @@
 
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <label for="nombreProducto" style="font-weight: 600;">Nombre del Producto</label>
+                        <!-- Aquí renderizamos el input con autocompletado para seleccionar o ingresar el nombre del producto -->
                         <input list="productosList" name="nombreProducto" id="nombreProducto" required class="admin-btn" style="text-align: left; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);" placeholder="Escriba el nombre exacto del producto o uno nuevo...">
                         <datalist id="productosList">
+                            <%-- Este bucle c:forEach itera los productos existentes para sugerirlos en la lista del datalist --%>
                             <c:forEach var="prod" items="${requestScope.productos}">
                                 <option value="${prod.nombreProducto}"></option>
                             </c:forEach>
@@ -107,17 +98,20 @@
 
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         <label for="precioVenta" style="font-weight: 600;">Precio de Venta al Publico (Actualizará o Creará el producto)</label>
+                        <!-- Aquí renderizamos el campo de texto para definir el precio de venta final del producto -->
                         <input type="text" name="precioVenta" id="precioVenta" required class="admin-btn" style="text-align: left; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);" placeholder="Ej: 50.00">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                             <label for="cantidad" style="font-weight: 600;">Cantidad que ingresa</label>
+                            <!-- Aquí renderizamos el input numérico que capta cuántas unidades de este producto están ingresando -->
                             <input type="number" name="cantidad" id="cantidad" min="1" required class="admin-btn" style="text-align: left; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);" placeholder="Ej: 50">
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                             <label for="costoUnitario" style="font-weight: 600;">Costo de Compra (Por Unidad)</label>
+                            <!-- Aquí renderizamos el input para ingresar el costo unitario de compra y calcular la rentabilidad -->
                             <input type="text" name="costoUnitario" id="costoUnitario" required class="admin-btn" style="text-align: left; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);" placeholder="Ej: 15.50">
                         </div>
                     </div>

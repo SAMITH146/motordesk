@@ -28,10 +28,12 @@
                         </div>
                     </c:if>
 
+                    <%-- Aquí renderizamos el formulario de inicio de sesión que envía el POST al LoginController --%>
                     <form class="login__form" action="${pageContext.request.contextPath}/LoginController" method="post">
 
                         <div class="login__grupo">
                             <label class="login__label">PIN de Acceso</label>
+                            <!-- Aquí renderizamos el input para ingresar el PIN, asegurándonos de que solo se acepten números -->
                             <input class="login__input" type="password" name="pin" maxlength="10" placeholder="••••••••"
                                 required pattern="\d+" title="Ingrese solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                         </div>

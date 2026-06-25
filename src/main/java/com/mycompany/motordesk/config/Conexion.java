@@ -5,11 +5,15 @@ package com.mycompany.motordesk.config;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-// Clase de configuración encargada de establecer la conexión con la base de datos MySQL
-// Clase pública Conexion que gestiona la lógica correspondiente
+/**
+ * Clase de configuración encargada de establecer la conexión con la base de datos MySQL.
+ * Utiliza JDBC (Java Database Connectivity), que es la API estándar de Java para conectarse a bases de datos relacionales.
+ * Esta conexión permite que el sistema (DAOs) pueda enviar consultas (SELECT, INSERT, UPDATE, DELETE) a la base de datos.
+ */
 public class Conexion {
 
-    // URL de conexión JDBC que especifica el servidor local, el puerto 3306 y la base de datos 'motordesk'
+    // URL de conexión JDBC que especifica el motor de base de datos (mysql), el servidor local (localhost), 
+    // el puerto (3306) y el nombre de la base de datos a la que nos conectaremos ('motordesk').
     private static final String URL =
         "jdbc:mysql://localhost:3306/motordesk?useSSL=false&serverTimezone=UTC";
 
@@ -17,28 +21,25 @@ public class Conexion {
     private static final String USER = "root";
     private static final String PASSWORD ="#Aprendiz2024";
 
-    // Método estático para obtener la conexión física de la base de datos
-    // Método Getter para recuperar el valor de Conexion
+    // Método estático para obtener la conexión activa a la base de datos MySQL usando JDBC
     public static Connection getConexion() {
 
-        Connection con = null; // Inicializamos la variable de tipo Connection
+        Connection con = null; // Variable del tipo java.sql.Connection
 
-        // Inicio del bloque try para control de excepciones
         try {
-            // Cargar de forma dinámica el Driver de MySQL Connector/J en la memoria de la aplicación
+            // 1. Cargar dinámicamente el Driver del Conector de MySQL en memoria de Java
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Establecer y retornar la conexión usando la URL y credenciales configuradas
+            // 2. Establecer la conexión con el servidor MySQL mediante la URL y credenciales configuradas
             con = DriverManager.getConnection(URL, USER, PASSWORD);
 
-            System.out.println("Conexion exitosa"); // Mensaje de diagnóstico en la consola del servidor
+            System.out.println("Conexion exitosa"); // Diagnóstico de conexión en la consola del servidor
 
         } catch (Exception e) {
-            e.printStackTrace(); // Capturar y mostrar errores en caso de fallo de conexión o driver no encontrado
+            e.printStackTrace(); // Muestra el error en la consola del servidor (Tomcat) en caso de fallo de driver o credenciales
         }
 
-        // Retornar el valor obtenido
-        return con; // Retornamos el objeto de conexión (o null si falló)
+        return con; // Retorna la conexión física activa (o null en caso de error)
     }
 
     // Método de soporte autogenerado (sin uso actual en la lógica de negocio)

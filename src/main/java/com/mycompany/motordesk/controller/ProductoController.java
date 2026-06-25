@@ -1,7 +1,7 @@
-// Definición del paquete del proyecto
+// Comenzamos definiendo el paquete de nuestro proyecto
 package com.mycompany.motordesk.controller;
 
-// Importación de dependencias y clases necesarias
+// A continuación, importamos las dependencias y clases necesarias
 import com.mycompany.motordesk.dao.ProductoDAO;
 import com.mycompany.motordesk.model.Producto;
 import java.io.IOException;
@@ -13,21 +13,33 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-// Anotación que define la ruta de acceso URL para este Servlet
+// Utilizamos esta anotación para definir la ruta de acceso URL para nuestro Servlet
+/**
+ * Este es nuestro Controlador encargado de la gestión de nuestro inventario de repuestos o productos.
+ * Aquí permitimos listar, filtrar, registrar, actualizar y eliminar productos.
+ */
 @WebServlet("/ProductoController")
-// Clase pública ProductoController que gestiona la lógica correspondiente
 public class ProductoController extends HttpServlet {
 
     private final ProductoDAO dao = new ProductoDAO();
 
+    /**
+     * En nuestro método doGet manejamos las peticiones HTTP GET.
+     * Aquí listamos los productos y aplicamos filtros de búsqueda si proporcionamos alguno.
+     * 
+     * @param request La petición HTTP que recibimos.
+     * @param response La respuesta HTTP que enviaremos.
+     * @throws ServletException Si ocurre un error en nuestro Servlet.
+     * @throws IOException Si ocurre un error de E/S durante el proceso.
+     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
         String action = request.getParameter("action");
-        // Validación condicional
+        // Evaluamos si la acción enviada corresponde a la edición de un producto. Si detectamos esta intención, intentamos capturar el ID del producto y cargar sus datos desde la base de datos para mostrarlos en la vista.
         if ("edit".equals(action)) {
-            // Inicio del bloque try para control de excepciones
+            // Iniciamos nuestro bloque try para el control de excepciones
             try {
                 int id = Integer.parseInt(request.getParameter("id"));
                 request.setAttribute("productoEditar", dao.obtenerPorId(id));
@@ -41,7 +53,7 @@ public class ProductoController extends HttpServlet {
         String fSeccion = request.getParameter("f_seccion");
 
         List<Producto> lista;
-        // Validación condicional
+        // Verificamos si el usuario ha introducido algún criterio de búsqueda, como texto libre, tipo de vehículo o sección. Si detectamos filtros activos, procedemos a consultar los productos que coincidan; de lo contrario, cargamos el inventario completo.
         if ((buscar != null && !buscar.isEmpty()) || 
             (fVehiculo != null && !fVehiculo.isEmpty()) || 
             (fSeccion != null && !fSeccion.isEmpty())) {
@@ -52,7 +64,7 @@ public class ProductoController extends HttpServlet {
 
         request.setAttribute("listaProductos", lista);
         
-        // Conservar los valores de filtro para mostrarlos en los inputs
+        // Conservamos los valores de filtro para mostrarlos en nuestros inputs
         request.setAttribute("filtroBuscar", buscar);
         request.setAttribute("filtroVehiculo", fVehiculo);
         request.setAttribute("filtroSeccion", fSeccion);
@@ -60,6 +72,15 @@ public class ProductoController extends HttpServlet {
         request.getRequestDispatcher("/admin/gestionarRepuestos.jsp").forward(request, response);
     }
 
+    /**
+     * En nuestro método doPost manejamos las peticiones HTTP POST.
+     * Aquí procesamos la inserción, actualización o eliminación de nuestros productos.
+     * 
+     * @param request La petición HTTP que recibimos.
+     * @param response La respuesta HTTP que enviaremos.
+     * @throws ServletException Si ocurre un error en nuestro Servlet.
+     * @throws IOException Si ocurre un error de E/S durante el proceso.
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -71,7 +92,7 @@ public class ProductoController extends HttpServlet {
         // Inicio del bloque try para control de excepciones
         try {
             Producto p = new Producto();
-            // Validación condicional
+            // Comprobamos si el formulario nos envía el ID de un producto existente. Si encontramos un ID válido, se lo asignamos a nuestro objeto para que el sistema sepa que se trata de una actualización y no de una creación nueva.
             if (request.getParameter("id") != null && !request.getParameter("id").isEmpty()) {
                 p.setIdProducto(Integer.parseInt(request.getParameter("id")));
             }
@@ -88,10 +109,10 @@ public class ProductoController extends HttpServlet {
 
             boolean exito = false;
 
-            // Validación condicional
+            // Evaluamos si el usuario solicitó la eliminación del producto. Si es el caso, procedemos a borrar el registro de nuestra base de datos y preparamos el mensaje de resultado correspondiente para la interfaz.
             if ("delete".equals(action)) {
                 exito = dao.eliminar(p.getIdProducto());
-                // Validación condicional
+                // Verificamos si la operación de eliminación en la base de datos se ejecutó de forma correcta. Si logramos borrar el producto, configuramos un mensaje de éxito para notificar al usuario.
                 if (exito) {
                     session.setAttribute("mensaje", "Producto eliminado correctamente.");
                     session.setAttribute("tipoMensaje", "success");
@@ -101,7 +122,7 @@ public class ProductoController extends HttpServlet {
                 }
             } else if (p.getIdProducto() > 0) {
                 exito = dao.actualizar(p);
-                // Validación condicional
+                // Comprobamos si la actualización de los datos del producto en la base de datos fue exitosa. Si el proceso terminó correctamente, preparamos un mensaje de confirmación positiva para mostrar en el sistema.
                 if (exito) {
                     session.setAttribute("mensaje", "Producto actualizado con éxito.");
                     session.setAttribute("tipoMensaje", "success");
@@ -111,7 +132,7 @@ public class ProductoController extends HttpServlet {
                 }
             } else {
                 exito = dao.insertar(p);
-                // Validación condicional
+                // Validamos si la inserción del nuevo producto en nuestra base de datos se realizó sin inconvenientes. Si el registro se creó exitosamente, configuramos una alerta de confirmación para que el usuario sepa que el inventario ha sido actualizado.
                 if (exito) {
                     session.setAttribute("mensaje", "Producto registrado correctamente.");
                     session.setAttribute("tipoMensaje", "success");

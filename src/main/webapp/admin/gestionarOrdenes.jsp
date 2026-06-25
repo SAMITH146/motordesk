@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
@@ -26,6 +26,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item active">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -37,66 +39,15 @@
         </div>
     </header>
 
-    <main class="admin-main fade-in">
-        <header class="admin-section__header">
-            <h1 class="admin-section__title">Gestión Global de Órdenes (Trabajo)</h1>
-            <p class="admin-section__subtitle">Monitoreo histórico y administrativo de todos los servicios del taller.</p>
-        </header>
-
-        <section class="admin-section">
-            <div class="tabs" style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                <a href="?action=listAll&filtro=TODAS" class="admin-btn ${empty param.filtro or param.filtro == 'TODAS' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Todas</a>
-                <a href="?action=listAll&filtro=ABIERTA" class="admin-btn ${param.filtro == 'ABIERTA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Abiertas</a>
-                <a href="?action=listAll&filtro=PROCESO" class="admin-btn ${param.filtro == 'PROCESO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">En Proceso</a>
-                <a href="?action=listAll&filtro=ESPERA" class="admin-btn ${param.filtro == 'ESPERA' ? 'active' : ''}" style="text-decoration:none; text-align:center;">En Espera</a>
-                <a href="?action=listAll&filtro=TERMINADO" class="admin-btn ${param.filtro == 'TERMINADO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Terminadas</a>
-                <a href="?action=listAll&filtro=FACTURADO" class="admin-btn ${param.filtro == 'FACTURADO' ? 'active' : ''}" style="text-decoration:none; text-align:center;">Facturadas</a>
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;" id="orders-grid">
-                <c:choose>
-                    <c:when test="${not empty requestScope.listaOrdenes}">
-                        <c:forEach var="ord" items="${requestScope.listaOrdenes}">
-                            <c:if test="${empty param.filtro or param.filtro == 'TODAS' or ord.estado == param.filtro}">
-                            <article class="admin-card order-card" data-estado="${ord.estado}">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                                    <h4 style="font-size: 1.5rem; color: var(--accent-light); letter-spacing: 2px;">${not empty ord.placaVehiculo ? ord.placaVehiculo : 'S/P'}</h4>
-                                    <span class="status-badge status-badge--${ord.estado.toLowerCase()}">${ord.estado}</span>
-                                </div>
-                                
-                                <div style="font-size: 0.9rem; line-height: 1.4; margin-bottom: 1rem;">
-                                    <p><strong>Descripción:</strong> ${ord.descripcion}</p>
-                                    <p><strong>Mecánico:</strong> ${not empty ord.nombreMecanico ? ord.nombreMecanico : ord.docEmpleFk}</p>
-                                    <p><strong>Total Orden:</strong> <fmt:formatNumber value="${ord.total}" type="currency" currencySymbol="$" /></p>
-                                    <p style="opacity: 0.6; margin-top: 5px;">🕒 <fmt:formatDate value="${ord.fecha}" pattern="dd/MM/yyyy" /></p>
-                                </div>
-
-                                <c:if test="${ord.estado == 'ESPERA'}">
-                                    <div style="background: rgba(241, 196, 15, 0.1); border: 1px dashed #f1c40f; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.85rem;">
-                                        <strong>Motivo:</strong> ${ord.motivoEspera}<br>
-                                        <strong>Estimado:</strong> ${ord.tiempoEspera}
-                                    </div>
-                                </c:if>
-
-                                <c:if test="${ord.estado ne 'FACTURADO'}">
-                                    <a href="?action=listAll&filtro=${empty param.filtro ? 'TODAS' : param.filtro}&editar=${ord.idOrden}#orden-${ord.idOrden}" class="admin-btn admin-btn--small" id="orden-${ord.idOrden}" style="display:block; text-align:center; text-decoration:none; width: 100%;">Actualizar Estado</a>
-
-                                    <c:if test="${param.editar == ord.idOrden}">
-                                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                                        <form action="${pageContext.request.contextPath}/OrdenController" method="post" class="admin-form">
-                                            <input type="hidden" name="action" value="updateStatus" />
-                                            <input type="hidden" name="id_orden" value="${ord.idOrden}" />
-                                            
-                                            <select name="nuevo_estado" class="form-input" required onchange="toggleEspera(this, ${ord.idOrden})">
-                                                <option value="ABIERTA" ${ord.estado == 'ABIERTA' ? 'selected' : ''}>Abierta</option>
-                                                <option value="PROCESO" ${ord.estado == 'PROCESO' ? 'selected' : ''}>En Proceso</option>
                                                 <option value="ESPERA" ${ord.estado == 'ESPERA' ? 'selected' : ''}>En Espera</option>
                                                 <option value="TERMINADO" ${ord.estado == 'TERMINADO' ? 'selected' : ''}>Terminado</option>
                                                 <option value="FACTURADO" ${ord.estado == 'FACTURADO' ? 'selected' : ''}>Facturada</option>
                                             </select>
 
                                             <div id="espera-fields-${ord.idOrden}" style="margin-top: 10px; display: ${ord.estado == 'ESPERA' ? 'block' : 'none'};">
+                                                <!-- Aquí renderizamos el input donde el usuario escribirá el motivo de espera de la orden -->
                                                 <input type="text" name="motivo" class="form-input" placeholder="Motivo (solo si es Espera)" value="${ord.motivoEspera}" style="margin-bottom: 5px;" />
+                                                <!-- Aquí renderizamos el input para el tiempo de espera estimado -->
                                                 <input type="text" name="tiempo" class="form-input" placeholder="Tiempo (ej: 1h)" value="${ord.tiempoEspera}" />
                                             </div>
 

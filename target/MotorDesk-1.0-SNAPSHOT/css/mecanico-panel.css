@@ -408,7 +408,23 @@ body {
 
 textarea.form-input { resize: vertical; min-height: 80px; }
 
-select.form-input option { background: #1e293b; color: #f8fafc; }
+/* FIX GLOBAL: opciones de select visibles en tema oscuro */
+select option,
+select.form-input option,
+select.admin-btn option,
+select.admin-form__input option {
+    background-color: #1e293b;
+    color: #f8fafc;
+}
+
+/* Opción seleccionada / activa */
+select option:checked,
+select.form-input option:checked,
+select.admin-btn option:checked,
+select.admin-form__input option:checked {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
 
 /* ============================================
    BUTTONS

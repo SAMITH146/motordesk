@@ -1,19 +1,33 @@
 // Definición del paquete del proyecto
 package com.mycompany.motordesk.model;
 
-// Clase pública OrdenTrabajo que gestiona la lógica correspondiente
+/**
+ * Clase pública OrdenTrabajo que representa un servicio o reparación a realizar en el taller.
+ * Agrupa los datos del vehículo, el mecánico asignado y el estado general del trabajo.
+ */
 public class OrdenTrabajo {
+    // Identificador único de la orden de trabajo (llave primaria)
     private int idOrden;
+    // Placa del vehículo al que se le realiza el trabajo
     private String placaVehiculo;
+    // Descripción detallada del problema reportado o el trabajo a realizar
     private String descripcion;
+    // Documento del empleado (mecánico) asignado a esta orden (llave foránea)
     private String docEmpleFk;
+    // Estado actual de la orden (ej. 'En progreso', 'Finalizada', 'En espera')
     private String estado;
+    // Motivo por el cual la orden está en espera, si aplica (ej. 'Falta de repuesto')
     private String motivoEspera;
+    // Tiempo estimado o registrado de espera en la orden
     private String tiempoEspera;
+    // Costo total de la orden de trabajo sumando servicios y repuestos
     private double total;
-    private java.sql.Date fecha; // Changed to java.sql.Date to match diagram
-    private int idVehiculoFk; // Added to link to Vehiculo table
-    private String nombreMecanico; // Added to show mechanic name in views
+    // Fecha en la que se generó la orden de trabajo
+    private java.sql.Date fecha; 
+    // Identificador interno del vehículo en el sistema (llave foránea)
+    private int idVehiculoFk; 
+    // Atributo auxiliar para mostrar el nombre del mecánico asignado en las vistas
+    private String nombreMecanico; 
 
     // Constructor por defecto (vacío)
     public OrdenTrabajo() {}

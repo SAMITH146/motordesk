@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
@@ -33,6 +33,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -55,118 +57,6 @@
             <div class="admin-alert admin-alert--${sessionScope.tipoMensaje}">
                 <span class="admin-alert__text">${sessionScope.mensaje}</span>
                 <button class="admin-alert__close" onclick="this.parentElement.remove();">x</button>
-            </div>
-            <% session.removeAttribute("mensaje"); session.removeAttribute("tipoMensaje"); %>
-        </c:if>
-
-        <section class="admin-section">
-            <c:if test="${not empty requestScope.productoEditar}">
-            <div class="admin-form-section">
-                <h3 class="admin-form-section__title">Editar Producto</h3>
-                <form action="${pageContext.request.contextPath}/ProductoController" method="post" class="admin-form">
-                    <input type="hidden" name="id" value="${requestScope.productoEditar.idProducto}" />
-                    
-                    <div class="admin-form__group">
-                        <label class="admin-form__label">Nombre del Producto</label>
-                        <input type="text" name="nombre" class="admin-form__input" placeholder="Ej: Neumatico" 
-                               value="${requestScope.productoEditar.nombreProducto}" required />
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div class="admin-form__group" style="margin-bottom: 0;">
-                            <label class="admin-form__label">Vehiculo</label>
-                            <select name="tipoVehiculo" class="admin-form__input" required>
-                                <option value="Moto" ${requestScope.productoEditar.tipoVehiculo == 'Moto' ? 'selected' : ''}>Moto</option>
-                                <option value="Carro" ${requestScope.productoEditar.tipoVehiculo == 'Carro' ? 'selected' : ''}>Carro</option>
-                                <option value="Tractomula" ${requestScope.productoEditar.tipoVehiculo == 'Tractomula' ? 'selected' : ''}>Tractomula</option>
-                            </select>
-                        </div>
-                        <div class="admin-form__group" style="margin-bottom: 0;">
-                            <label class="admin-form__label">Seccion</label>
-                            <select name="seccion" class="admin-form__input" required>
-                                <option value="Llantas" ${requestScope.productoEditar.seccion == 'Llantas' ? 'selected' : ''}>Llantas</option>
-                                <option value="Frenos" ${requestScope.productoEditar.seccion == 'Frenos' ? 'selected' : ''}>Frenos</option>
-                                <option value="Motor" ${requestScope.productoEditar.seccion == 'Motor' ? 'selected' : ''}>Motor</option>
-                                <option value="Arrastre" ${requestScope.productoEditar.seccion == 'Arrastre' ? 'selected' : ''}>Arrastre</option>
-                                <option value="Suspension" ${requestScope.productoEditar.seccion == 'Suspension' ? 'selected' : ''}>Suspension</option>
-                                <option value="Lubricantes" ${requestScope.productoEditar.seccion == 'Lubricantes' ? 'selected' : ''}>Lubricantes</option>
-                                <option value="Otros" ${requestScope.productoEditar.seccion == 'Otros' ? 'selected' : ''}>Otros / Accesorios</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="admin-form__group">
-                        <label class="admin-form__label">Stock Actual</label>
-                        <input type="number" name="stock" class="admin-form__input" value="${not empty requestScope.productoEditar ? requestScope.productoEditar.stock : '0'}" required />
-                    </div>
-                    
-                    <div class="admin-form__group">
-                        <label class="admin-form__label">Precio Unitario ($)</label>
-                        <input type="number" step="0.01" name="precio" class="admin-form__input" value="${not empty requestScope.productoEditar ? requestScope.productoEditar.precioUnitario : '0.00'}" required />
-                    </div>
-
-                    <div class="admin-form__actions">
-                        <button type="submit" class="admin-btn">${empty requestScope.productoEditar ? 'Guardar Producto' : 'Actualizar Cambios'}</button>
-                        <c:if test="${not empty requestScope.productoEditar}">
-                            <a href="${pageContext.request.contextPath}/ProductoController" class="admin-btn admin-btn--danger">Cancelar</a>
-                        </c:if>
-                    </div>
-                </form>
-            </div>
-            </c:if>
-
-            <div class="admin-table-container" style="margin-top: 2rem;">
-                <div style="padding: 20px 20px 0 20px;">
-                    <h3 class="admin-form-section__title" style="border-bottom: none; display: inline-block;">Listado de Productos</h3>
-                    
-                    <!-- Búsqueda y Filtros -->
-                    <form action="${pageContext.request.contextPath}/ProductoController" method="get" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                        <input type="text" name="buscar" placeholder="Buscar por Nombre..." value="${requestScope.filtroBuscar}" class="admin-form__input" style="flex: 2; min-width: 200px;">
-                        
-                        <select name="f_vehiculo" class="admin-form__input" style="flex: 1; min-width: 150px;">
-                            <option value="">Todos los Vehiculos</option>
-                            <option value="Moto" ${requestScope.filtroVehiculo == 'Moto' ? 'selected' : ''}>Moto</option>
-                            <option value="Carro" ${requestScope.filtroVehiculo == 'Carro' ? 'selected' : ''}>Carro</option>
-                            <option value="Tractomula" ${requestScope.filtroVehiculo == 'Tractomula' ? 'selected' : ''}>Tractomula</option>
-                        </select>
-
-                        <select name="f_seccion" class="admin-form__input" style="flex: 1; min-width: 150px;">
-                            <option value="">Todas las Secciones</option>
-                            <option value="Llantas" ${requestScope.filtroSeccion == 'Llantas' ? 'selected' : ''}>Llantas</option>
-                            <option value="Frenos" ${requestScope.filtroSeccion == 'Frenos' ? 'selected' : ''}>Frenos</option>
-                            <option value="Motor" ${requestScope.filtroSeccion == 'Motor' ? 'selected' : ''}>Motor</option>
-                            <option value="Arrastre" ${requestScope.filtroSeccion == 'Arrastre' ? 'selected' : ''}>Arrastre</option>
-                            <option value="Suspension" ${requestScope.filtroSeccion == 'Suspension' ? 'selected' : ''}>Suspension</option>
-                            <option value="Lubricantes" ${requestScope.filtroSeccion == 'Lubricantes' ? 'selected' : ''}>Lubricantes</option>
-                            <option value="Electrico" ${requestScope.filtroSeccion == 'Electrico' ? 'selected' : ''}>Partes Eléctricas</option>
-                            <option value="Otros" ${requestScope.filtroSeccion == 'Otros' ? 'selected' : ''}>Otros</option>
-                        </select>
-                        
-                        <button type="submit" class="admin-btn" style="flex: 0 1 auto; white-space: nowrap;">🔍 Buscar</button>
-                        <a href="${pageContext.request.contextPath}/ProductoController" class="admin-btn admin-btn--danger" style="flex: 0 1 auto;">Limpiar</a>
-                    </form>
-                </div>
-
-                <table class="admin-table" style="margin-top: 15px;">
-                    <thead class="admin-table__head">
-                        <tr>
-                            <th class="admin-table__th">ID</th>
-                            <th class="admin-table__th">Nombre</th>
-                            <th class="admin-table__th">Categorizacion</th>
-                            <th class="admin-table__th">Stock</th>
-                            <th class="admin-table__th">Precio Venta</th>
-                            <th class="admin-table__th">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty requestScope.listaProductos}">
-                                <c:forEach var="p" items="${requestScope.listaProductos}">
-                                    <tr class="admin-table__row">
-                                        <td class="admin-table__td">#${p.idProducto}</td>
-                                        <td class="admin-table__td"><strong>${p.nombreProducto}</strong></td>
-                                        <td class="admin-table__td">
-                                            <span style="display: block; font-size: 0.85em; opacity: 0.8;">[${p.tipoVehiculo != null ? p.tipoVehiculo : 'General'}]</span>
                                             <span style="font-weight: bold; color: #3498db;">${p.seccion != null ? p.seccion : 'General'}</span>
                                         </td>
                                         <td class="admin-table__td">
@@ -198,6 +88,7 @@
 
         <!-- Delete Modals (Renderizados fuera de la tabla para evitar problemas de z-index) -->
         <c:if test="${not empty requestScope.listaProductos}">
+            <%-- Aquí iteramos la lista de productos (repuestos) para crear dinámicamente cada modal de eliminación --%>
             <c:forEach var="p" items="${requestScope.listaProductos}">
                 <div id="deleteModalProd-${p.idProducto}" class="modal-css">
                     <div class="modal-content-css">
@@ -205,6 +96,7 @@
                         <p>Estás a punto de eliminar <strong>${p.nombreProducto}</strong>.<br>Esta acción no se puede deshacer.</p>
                         <div class="modal-buttons-css">
                             <a href="#" class="btn-modal-css btn-modal-css--cancel">Cancelar</a>
+                            <%-- Este formulario envía el POST que confirma la eliminación del producto seleccionado en el modal --%>
                             <form action="${pageContext.request.contextPath}/ProductoController" method="post" style="display:inline;">
                                 <input type="hidden" name="action" value="delete" />
                                 <input type="hidden" name="id" value="${p.idProducto}" />

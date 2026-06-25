@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
     <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
         <!DOCTYPE html>
         <html lang="es">
@@ -27,6 +27,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -66,6 +68,7 @@
                             </div>
                             <div>
                                 <c:choose>
+                                    <%-- Bucle que recorre la lista recentMecanicos y muestra sus nombres y estados --%>
                                     <c:when test="${not empty requestScope.recentMecanicos}">
                                         <c:forEach var="m" items="${requestScope.recentMecanicos}">
                                             <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.95rem;">
@@ -89,6 +92,7 @@
                             </div>
                             <div>
                                 <c:choose>
+                                    <%-- Bucle que recorre la lista recentOrdenes y muestra su placa y estado --%>
                                     <c:when test="${not empty requestScope.recentOrdenes}">
                                         <c:forEach var="ord" items="${requestScope.recentOrdenes}">
                                             <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.95rem;">
@@ -122,4 +126,3 @@
             </div>
         </body>
         </html>
-

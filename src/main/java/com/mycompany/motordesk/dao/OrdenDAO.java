@@ -1,197 +1,186 @@
-// Este archivo pertenece al paquete "dao" — la capa más importante: habla directamente con MySQL
+// Este archivo pertenece a nuestro paquete "dao" — la capa más importante donde nos comunicamos directamente con MySQL
 package com.mycompany.motordesk.dao;
 
-// Clase que centraliza la conexión a la base de datos (usuario, contraseña, URL de MySQL)
+// Aquí tenemos la clase que centraliza nuestra conexión a la base de datos (usuario, contraseña, URL de MySQL)
 import com.mycompany.motordesk.config.Conexion;
-// Modelos que necesitamos para convertir filas de BD en objetos Java
+// Estos son los modelos que necesitamos para convertir nuestras filas de BD en objetos Java
 import com.mycompany.motordesk.model.DetalleOrden;
 import com.mycompany.motordesk.model.OrdenTrabajo;
 import com.mycompany.motordesk.model.ServicioOrden;
-// Clases estándar de Java para manejar la BD
+// Clases estándar de Java para que manejemos la BD
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-// Clase que gestiona TODAS las operaciones de la tabla ordentrabajo y detalleorden en MySQL
+/**
+ * Esta es nuestra Clase de Acceso a Datos (DAO) para la gestión de Órdenes de Trabajo.
+ * Nosotros gestionamos aquí TODAS las operaciones de la tabla ordentrabajo y detalleorden en MySQL de forma transaccional.
+ */
 public class OrdenDAO {
 
-    // ===================================================================
-    // MÉTODO PRINCIPAL: insertarOrden
-    // Crea una orden completa usando una TRANSACCIÓN — si algo falla, todo se cancela
-    // ===================================================================
-    // ===================================================================
-    // MÉTODO: insertarOrden (sobrecarga simple sin servicios — compatibilidad)
-    // ===================================================================
+    /**
+     * En este paso, creamos una orden usando una TRANSACCIÓN (sin servicios de mano de obra).
+     * @param o Objeto OrdenTrabajo que vamos a insertar.
+     * @param detalles Lista de repuestos (DetalleOrden) que hemos utilizado.
+     * @throws Exception Si nos falla la inserción o vemos que no hay stock.
+     */
     public void insertarOrden(OrdenTrabajo o, List<DetalleOrden> detalles) throws Exception {
         insertarOrden(o, detalles, new ArrayList<>());
     }
 
-    // ===================================================================
-    // MÉTODO PRINCIPAL: insertarOrden (con servicios de mano de obra)
-    // Crea una orden completa usando una TRANSACCIÓN — si algo falla, todo se cancela
-    // El total = suma de repuestos + suma de servicios
-    // ===================================================================
+    /**
+     * Aquí procedemos a crear una orden completa usando una TRANSACCIÓN (que incluye repuestos y servicios).
+     * Si notamos que algo falla, nosotros cancelamos todo (rollback). Además, calculamos y actualizamos el stock automáticamente.
+     * @param o Objeto OrdenTrabajo con nuestra información base.
+     * @param detalles Lista de repuestos que vamos a descontar del inventario.
+     * @param servicios Lista de servicios (mano de obra) que facturaremos.
+     * @throws Exception Si nos falla la BD o vemos que el stock es insuficiente.
+     */
     public void insertarOrden(OrdenTrabajo o, List<DetalleOrden> detalles, List<ServicioOrden> servicios) throws Exception {
 
-        // Las 4 consultas SQL que necesitamos para todo el proceso:
         String sqlOrden   = "INSERT INTO ordentrabajo (id_vehiculo_fk, doc_emple_fk, estado, descripcion, total, placa_vehiculo) VALUES (?, ?, ?, ?, ?, ?)";
         String sqlDetalle = "INSERT INTO detalleorden (id_orden_fk, id_repuesto_fk, cantidad, subtotal) VALUES (?, ?, ?, ?)";
-        String sqlPrecio  = "SELECT nombre, stock, precio FROM producto WHERE id_producto = ?"; // Para validar stock y calcular precio
-        String sqlStock   = "UPDATE producto SET stock = stock - ? WHERE id_producto = ?";       // Para descontar del inventario
+        String sqlPrecio  = "SELECT nombre, stock, precio FROM producto WHERE id_producto = ?";
+        String sqlStock   = "UPDATE producto SET stock = stock - ? WHERE id_producto = ?";
 
-        Connection con = null; // Declaramos fuera del try para poder hacer rollback en el catch
+        Connection con = null;
 
         try {
-            con = Conexion.getConexion(); // Abrimos la conexión a MySQL
-
-            // === PASO A: Iniciamos la transacción ===
-            // setAutoCommit(false) significa: "no guardes NADA en la BD todavía"
-            // Todo lo que hagamos quedará en suspenso hasta que llamemos commit()
+            // PASO 1: Iniciamos nuestra transacción de base de datos desactivando el auto-commit
+            con = Conexion.getConexion();
             con.setAutoCommit(false);
 
-            // === PASO 1: Validar stock y calcular el total de la orden ===
-            double totalOrden = 0.0; // Acumulador del precio total de todos los repuestos
+            double totalOrden = 0.0;
 
-            for (DetalleOrden d : detalles) { // Recorremos cada repuesto seleccionado
+            // PASO 2: Recorremos los repuestos solicitados para validar si hay stock suficiente en inventario
+            for (DetalleOrden d : detalles) {
                 double precioUnitario = 0.0;
                 int stockDisponible = 0;
                 String nombreProducto = "";
 
-                // Consultamos el precio y stock actual de este repuesto en el inventario
                 try (PreparedStatement psP = con.prepareStatement(sqlPrecio)) {
-                    psP.setInt(1, d.getIdProductoFk()); // ID del repuesto a consultar
+                    psP.setInt(1, d.getIdProductoFk());
                     try (ResultSet rsP = psP.executeQuery()) {
+                        // Verificamos si encontramos el repuesto en la base de datos para extraer su stock actual
                         if (rsP.next()) {
-                            nombreProducto  = rsP.getString("nombre"); // Nombre del repuesto
-                            stockDisponible = rsP.getInt("stock");     // Cuántos hay en bodega
-                            precioUnitario  = rsP.getDouble("precio"); // Precio unitario
+                            nombreProducto  = rsP.getString("nombre");
+                            stockDisponible = rsP.getInt("stock");
+                            precioUnitario  = rsP.getDouble("precio");
                         } else {
-                            // Si el producto no existe en la BD, lanzamos error y se cancela todo
                             throw new Exception("Producto no encontrado.");
                         }
                     }
                 }
 
-                // REGLA DE NEGOCIO: Si piden más de lo que hay en stock, se bloquea la orden
                 if (d.getCantidad() > stockDisponible) {
-                    // Este mensaje de error llega directamente a la pantalla del mecánico
                     throw new Exception("Stock insuficiente para " + nombreProducto +
                                         ". Solo hay un stock de " + stockDisponible + " unidades.");
                 }
 
-                // Calculamos el subtotal de este repuesto: precio × cantidad
                 double subtotal = precioUnitario * d.getCantidad();
-                d.setSubtotal(subtotal);   // Guardamos el subtotal en el objeto
-                totalOrden += subtotal;    // Sumamos al total general de la orden
+                d.setSubtotal(subtotal);
+                totalOrden += subtotal;
             }
-            // Sumamos también el valor de cada servicio de mano de obra al total
+
+            // PASO 3: Recorremos los servicios de mano de obra y los sumamos al total de nuestra orden
             for (ServicioOrden s : servicios) {
-                if (s.getNombre() != null && !s.getNombre().trim().isEmpty() && s.getValor() > 0) {
-                    totalOrden += s.getValor();
+                if (s.getIdServicioFk() > 0 && s.getValorCobrado() >= 0) {
+                    totalOrden += s.getValorCobrado();
                 }
             }
-            o.setTotal(totalOrden); // Total final = repuestos + servicios de mano de obra
+            o.setTotal(totalOrden);
 
-            // === PASO 2: Insertar la cabecera de la orden en la tabla ordentrabajo ===
-            // RETURN_GENERATED_KEYS le pide a MySQL que nos devuelva el ID que generó (id_orden)
+            // PASO 4: Procedemos a guardar la Orden principal en la base de datos
             try (PreparedStatement psO = con.prepareStatement(sqlOrden, Statement.RETURN_GENERATED_KEYS)) {
 
-                // Asignamos el ID del vehículo, o NULL si no se pudo vincular
                 if (o.getIdVehiculoFk() > 0) {
-                    psO.setInt(1, o.getIdVehiculoFk()); // ID del vehículo asociado
+                    psO.setInt(1, o.getIdVehiculoFk());
                 } else {
-                    psO.setNull(1, java.sql.Types.INTEGER); // Si no hay vehículo, insertamos NULL
+                    psO.setNull(1, java.sql.Types.INTEGER);
                 }
-                psO.setString(2, o.getDocEmpleFk());    // Documento del mecánico que crea la orden
-                psO.setString(3, "ABIERTA");             // Estado inicial siempre es ABIERTA
-                psO.setString(4, o.getDescripcion());    // Descripción del problema reportado
-                psO.setDouble(5, o.getTotal());          // Total ya calculado
-                psO.setString(6, o.getPlacaVehiculo());  // Placa del vehículo
+                psO.setString(2, o.getDocEmpleFk());
+                psO.setString(3, "ABIERTA");
+                psO.setString(4, o.getDescripcion());
+                psO.setDouble(5, o.getTotal());
+                psO.setString(6, o.getPlacaVehiculo());
 
-                int affected = psO.executeUpdate(); // Ejecutamos el INSERT
+                int affected = psO.executeUpdate();
                 if (affected == 0) throw new SQLException("Error al crear la orden.");
 
-                // Leemos el ID que MySQL generó para esta nueva orden
+                // PASO 5: Obtenemos el ID único que MySQL le acaba de asignar a la orden que guardamos
                 try (ResultSet rs = psO.getGeneratedKeys()) {
                     if (rs.next()) {
-                        int idGenerado = rs.getInt(1); // Este es el id_orden que MySQL asignó
+                        int idGenerado = rs.getInt(1);
 
-                        // === PASO 3: Insertar los detalles y descontar stock en lote (Batch) ===
-                        // El "batch" agrupa múltiples inserts y los ejecuta de una sola vez — más eficiente
-                        try (PreparedStatement psD = con.prepareStatement(sqlDetalle);
-                             PreparedStatement psS = con.prepareStatement(sqlStock)) {
+                        // PASO 6: Si usamos repuestos, los guardamos en detalleorden y descontamos el stock en producto
+                        if (!detalles.isEmpty()) {
+                            try (PreparedStatement psD = con.prepareStatement(sqlDetalle);
+                                 PreparedStatement psS = con.prepareStatement(sqlStock)) {
 
-                            for (DetalleOrden d : detalles) { // Para cada repuesto de la orden
-                                // Preparamos el insert del detalle
-                                psD.setInt(1, idGenerado);          // ID de la orden recién creada
-                                psD.setInt(2, d.getIdProductoFk()); // ID del repuesto
-                                psD.setInt(3, d.getCantidad());     // Cantidad usada
-                                psD.setDouble(4, d.getSubtotal());  // Subtotal calculado
-                                psD.addBatch(); // Agregamos este insert al lote, sin ejecutar todavía
+                                for (DetalleOrden d : detalles) {
+                                    psD.setInt(1, idGenerado);
+                                    psD.setInt(2, d.getIdProductoFk());
+                                    psD.setInt(3, d.getCantidad());
+                                    psD.setDouble(4, d.getSubtotal());
+                                    psD.addBatch();
 
-                                // Preparamos el descuento de stock en el inventario
-                                psS.setInt(1, d.getCantidad());     // Cuánto descontar
-                                psS.setInt(2, d.getIdProductoFk()); // A qué producto
-                                psS.addBatch(); // Agregamos este update al lote
+                                    psS.setInt(1, d.getCantidad());
+                                    psS.setInt(2, d.getIdProductoFk());
+                                    psS.addBatch();
+                                }
+
+                                psD.executeBatch();
+                                psS.executeBatch();
                             }
-
-                            psD.executeBatch(); // Ejecutamos TODOS los inserts de detalles de una vez
-                            psS.executeBatch(); // Ejecutamos TODOS los descuentos de stock de una vez
                         }
 
-                        // === PASO 4: Insertar los servicios de mano de obra ===
-                        String sqlServicio = "INSERT INTO servicioorden (id_orden_fk, nombre, valor) VALUES (?, ?, ?)";
+                        // PASO 7: Finalmente guardamos los servicios de mano de obra asociados a esta orden
+                        String sqlServicio = "INSERT INTO servicioorden (id_orden_fk, id_servicio_fk, valor_cobrado) VALUES (?, ?, ?)";
                         try (PreparedStatement psSrv = con.prepareStatement(sqlServicio)) {
                             for (ServicioOrden s : servicios) {
-                                // Solo insertamos servicios con nombre y valor válidos
-                                if (s.getNombre() != null && !s.getNombre().trim().isEmpty() && s.getValor() > 0) {
-                                    psSrv.setInt(1, idGenerado);        // ID de la orden
-                                    psSrv.setString(2, s.getNombre().trim()); // Nombre del servicio
-                                    psSrv.setDouble(3, s.getValor());   // Valor de la mano de obra
+                                if (s.getIdServicioFk() > 0 && s.getValorCobrado() >= 0) {
+                                    psSrv.setInt(1, idGenerado);
+                                    psSrv.setInt(2, s.getIdServicioFk());
+                                    psSrv.setDouble(3, s.getValorCobrado());
                                     psSrv.addBatch();
                                 }
                             }
-                            psSrv.executeBatch(); // Insertamos todos los servicios de una vez
+                            psSrv.executeBatch();
                         }
                     }
                 }
             }
 
-            // === PASO B: COMMIT — Todo salió bien, confirmamos todos los cambios en la BD ===
+            // PASO 8: Si logramos llegar hasta aquí sin errores, confirmamos todos los cambios (Commit)
             con.commit();
 
         } catch (Exception e) {
-            // === PASO C: ROLLBACK — Algo falló, deshacemos TODOS los cambios ===
-            // Gracias al rollback, la BD queda exactamente como estaba antes — sin datos a medias
             if (con != null) {
                 try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
-            throw e; // Lanzamos el error hacia arriba para que el Controlador lo muestre al usuario
+            throw e;
         } finally {
-            // === PASO D: Siempre restauramos autoCommit y cerramos la conexión ===
-            // "finally" se ejecuta SIEMPRE, haya o no error — garantiza que nunca quede una conexión abierta
             if (con != null) {
                 try { con.setAutoCommit(true); con.close(); } catch (SQLException e) { e.printStackTrace(); }
             }
         }
     }
 
-    // ===================================================================
-    // MÉTODO: listarTodas — Trae todas las órdenes con el nombre del mecánico
-    // Usa un JOIN para combinar ordentrabajo + empleado en una sola consulta
-    // ===================================================================
+    /**
+     * Con esto traemos todas las órdenes junto con el nombre de nuestro mecánico asignado.
+     * Usamos un JOIN para combinar ordentrabajo con empleado_historico.
+     * @return Nuestra lista de todas las órdenes de trabajo.
+     */
     public List<OrdenTrabajo> listarTodas() {
         List<OrdenTrabajo> lista = new ArrayList<>();
 
-        // LEFT JOIN: traemos la orden aunque el mecánico haya sido eliminado del sistema
-        // ORDER BY fecha DESC: las órdenes más recientes aparecen primero
-        String sql = "SELECT o.*, e.nom_empleado FROM ordentrabajo o LEFT JOIN empleado e ON o.doc_emple_fk = e.doc_emple ORDER BY o.fecha DESC";
+        String sql = "SELECT o.*, h.nom_empleado AS nom_empleado FROM ordentrabajo o LEFT JOIN empleado_historico h ON o.doc_emple_fk = h.doc_emple ORDER BY o.fecha DESC";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                lista.add(mapearOrden(rs)); // Convertimos cada fila en un objeto OrdenTrabajo
+                lista.add(mapearOrden(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -199,19 +188,20 @@ public class OrdenDAO {
         return lista;
     }
 
-    // ===================================================================
-    // MÉTODO: listarPorMecanico — Filtra las órdenes de UN mecánico específico
-    // Lo usa el panel del mecánico para mostrar solo SUS órdenes
-    // ===================================================================
+    /**
+     * Ahora filtramos las órdenes asignadas a un mecánico en específico.
+     * Esto lo usamos en el panel del mecánico para que él pueda mostrar solo SUS órdenes.
+     * @param docMecanico Documento del mecánico.
+     * @return Nuestra lista de órdenes correspondientes al mecánico.
+     */
     public List<OrdenTrabajo> listarPorMecanico(String docMecanico) {
         List<OrdenTrabajo> lista = new ArrayList<>();
 
-        // WHERE filtra solo las órdenes del mecánico con ese documento
-        String sql = "SELECT o.*, e.nom_empleado FROM ordentrabajo o LEFT JOIN empleado e ON o.doc_emple_fk = e.doc_emple WHERE o.doc_emple_fk = ? ORDER BY o.fecha DESC";
+        String sql = "SELECT o.*, h.nom_empleado AS nom_empleado FROM ordentrabajo o LEFT JOIN empleado_historico h ON o.doc_emple_fk = h.doc_emple WHERE o.doc_emple_fk = ? ORDER BY o.fecha DESC";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, docMecanico); // Ponemos el documento del mecánico en el '?'
+            ps.setString(1, docMecanico);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     lista.add(mapearOrden(rs));
@@ -223,10 +213,15 @@ public class OrdenDAO {
         return lista;
     }
 
-    // ===================================================================
-    // MÉTODO: actualizarEstado — Cambia el estado de la orden (ABIERTA, PROCESO, etc.)
-    // También guarda el motivo si el mecánico pone la orden en ESPERA
-    // ===================================================================
+    /**
+     * Cambiamos el estado de nuestra orden (ABIERTA, PROCESO, ESPERA, TERMINADA, etc.).
+     * Si decidimos que el estado es ESPERA, guardamos el motivo y el tiempo estimado.
+     * @param id ID de nuestra orden.
+     * @param nuevoEstado Nuevo estado que vamos a asignar.
+     * @param motivo Motivo de nuestra espera (puede ser null).
+     * @param tiempo Tiempo de espera que calculamos (puede ser null).
+     * @return true si logramos actualizar correctamente.
+     */
     public boolean actualizarEstado(int id, String nuevoEstado, String motivo, String tiempo) {
         String sql = "UPDATE ordentrabajo SET estado = ?, motivo_espera = ?, tiempo_espera = ? WHERE id_orden = ?";
 
@@ -250,32 +245,34 @@ public class OrdenDAO {
         return actualizarEstado(id, nuevoEstado, null, null);
     }
 
-    // ===================================================================
-    // MÉTODO: obtenerPorId — Busca una orden específica por su ID
-    // La usa el controlador cuando quiere mostrar la factura de una orden
-    // ===================================================================
+    /**
+     * Buscamos una orden específica usando su ID, y también incluimos el nombre de nuestro mecánico asignado.
+     * @param id ID de nuestra orden.
+     * @return El objeto OrdenTrabajo que encontramos, o null si vemos que no existe.
+     */
     public OrdenTrabajo obtenerPorId(int id) {
-        // JOIN con empleado para traer también el nombre del mecánico
-        String sql = "SELECT o.*, e.nom_empleado FROM ordentrabajo o LEFT JOIN empleado e ON o.doc_emple_fk = e.doc_emple WHERE o.id_orden = ?";
+        String sql = "SELECT o.*, h.nom_empleado AS nom_empleado FROM ordentrabajo o LEFT JOIN empleado_historico h ON o.doc_emple_fk = h.doc_emple WHERE o.id_orden = ?";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id); // El ID de la orden a buscar
+            ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapearOrden(rs); // Convertimos la fila en objeto OrdenTrabajo
+                    return mapearOrden(rs);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null; // Si no encontró esa orden, retornamos null
+        return null;
     }
 
-    // ===================================================================
-    // MÉTODO: obtenerDetallesDeOrden — Trae los repuestos usados en una orden
-    // Lo usa la factura para mostrar el listado de productos con sus precios
-    // ===================================================================
+    /**
+     * Traemos los repuestos (DetalleOrden) que hemos usado en una orden específica.
+     * También incluimos el nombre de nuestro producto mediante un JOIN con la tabla producto.
+     * @param idOrden ID de nuestra orden.
+     * @return Lista de los repuestos que usamos en esa orden.
+     */
     public List<DetalleOrden> obtenerDetallesDeOrden(int idOrden) {
         List<DetalleOrden> lista = new ArrayList<>();
 
@@ -304,11 +301,12 @@ public class OrdenDAO {
         return lista;
     }
 
-    // ===================================================================
-    // MÉTODO: tieneOrdenAbiertaPorDocumento
-    // Verifica si un cliente ya tiene una orden ABIERTA antes de crear una nueva
-    // Regla de negocio: un cliente no puede tener 2 órdenes abiertas al mismo tiempo
-    // ===================================================================
+    /**
+     * Nosotros verificamos si un cliente ya tiene una orden en estado 'ABIERTA' antes de que le creemos una nueva.
+     * Nuestra regla de negocio nos indica: un cliente no puede tener 2 órdenes abiertas al mismo tiempo.
+     * @param docCliente Documento de nuestro cliente a validar.
+     * @return true si vemos que tiene una orden abierta, false si consideramos que se le puede crear una nueva.
+     */
     public boolean tieneOrdenAbiertaPorDocumento(String docCliente) {
         boolean tiene = false;
 
@@ -334,22 +332,26 @@ public class OrdenDAO {
         return tiene; // true = tiene orden abierta, false = puede crear una nueva
     }
 
-    // ===================================================================
-    // MÉTODO: actualizarOrden — Edita una orden existente (también en transacción)
-    // Devuelve el stock de los repuestos viejos, valida el nuevo stock, y reemplaza los detalles
-    // ===================================================================
-    // ===================================================================
-    // MÉTODO: actualizarOrden (sobrecarga simple sin servicios — compatibilidad)
-    // ===================================================================
+    /**
+     * Editamos una orden que ya existe usando transacción (nuestra versión sin servicios).
+     * Devolvemos el stock de nuestros repuestos viejos, y luego validamos y descontamos el nuevo stock.
+     * @param o Objeto OrdenTrabajo con nuestra información base.
+     * @param nuevosDetalles Lista actualizada de nuestros repuestos.
+     * @throws Exception Si nos ocurre un problema de base de datos o de stock.
+     */
     public void actualizarOrden(OrdenTrabajo o, List<DetalleOrden> nuevosDetalles) throws Exception {
         actualizarOrden(o, nuevosDetalles, new ArrayList<>());
     }
 
-    // ===================================================================
-    // MÉTODO: actualizarOrden (con servicios de mano de obra)
-    // Devuelve el stock de los repuestos viejos, valida el nuevo stock, y reemplaza los detalles
-    // También borra los servicios viejos y los reemplaza por los nuevos
-    // ===================================================================
+    /**
+     * Editamos una orden completa (incluyendo repuestos y servicios) usando nuestra TRANSACCIÓN.
+     * Nosotros reintegramos el stock de nuestros repuestos viejos, y luego cobramos el de los nuevos.
+     * Borramos los servicios anteriores e insertamos los que hemos actualizado.
+     * @param o OrdenTrabajo que hemos actualizado.
+     * @param nuevosDetalles Nuestra nueva lista de repuestos.
+     * @param nuevosServicios Nuestra nueva lista de servicios.
+     * @throws Exception En caso de que notemos error de conexión o inventario insuficiente.
+     */
     public void actualizarOrden(OrdenTrabajo o, List<DetalleOrden> nuevosDetalles, List<ServicioOrden> nuevosServicios) throws Exception {
         Connection con = null;
         try {
@@ -389,8 +391,8 @@ public class OrdenDAO {
 
             // Sumamos los servicios de mano de obra al total primero
             for (ServicioOrden s : nuevosServicios) {
-                if (s.getNombre() != null && !s.getNombre().trim().isEmpty() && s.getValor() > 0) {
-                    totalOrden += s.getValor();
+                if (s.getIdServicioFk() > 0 && s.getValorCobrado() >= 0) {
+                    totalOrden += s.getValorCobrado();
                 }
             }
 
@@ -432,34 +434,36 @@ public class OrdenDAO {
             }
 
             // PASO 5: Insertamos los nuevos detalles y descontamos el nuevo stock
-            String sqlDetalle    = "INSERT INTO detalleorden (id_orden_fk, id_repuesto_fk, cantidad, subtotal) VALUES (?, ?, ?, ?)";
-            String sqlDeductStock = "UPDATE producto SET stock = stock - ? WHERE id_producto = ?";
+            if (!nuevosDetalles.isEmpty()) {
+                String sqlDetalle    = "INSERT INTO detalleorden (id_orden_fk, id_repuesto_fk, cantidad, subtotal) VALUES (?, ?, ?, ?)";
+                String sqlDeductStock = "UPDATE producto SET stock = stock - ? WHERE id_producto = ?";
 
-            try (PreparedStatement psD = con.prepareStatement(sqlDetalle);
-                 PreparedStatement psS = con.prepareStatement(sqlDeductStock)) {
-                for (DetalleOrden d : nuevosDetalles) {
-                    psD.setInt(1, o.getIdOrden());
-                    psD.setInt(2, d.getIdProductoFk());
-                    psD.setInt(3, d.getCantidad());
-                    psD.setDouble(4, d.getSubtotal());
-                    psD.addBatch(); // Agrupamos los inserts
+                try (PreparedStatement psD = con.prepareStatement(sqlDetalle);
+                     PreparedStatement psS = con.prepareStatement(sqlDeductStock)) {
+                    for (DetalleOrden d : nuevosDetalles) {
+                        psD.setInt(1, o.getIdOrden());
+                        psD.setInt(2, d.getIdProductoFk());
+                        psD.setInt(3, d.getCantidad());
+                        psD.setDouble(4, d.getSubtotal());
+                        psD.addBatch();
 
-                    psS.setInt(1, d.getCantidad());
-                    psS.setInt(2, d.getIdProductoFk());
-                    psS.addBatch(); // Agrupamos los descuentos de stock
+                        psS.setInt(1, d.getCantidad());
+                        psS.setInt(2, d.getIdProductoFk());
+                        psS.addBatch();
+                    }
+                    psD.executeBatch();
+                    psS.executeBatch();
                 }
-                psD.executeBatch(); // Ejecutamos todos los inserts
-                psS.executeBatch(); // Ejecutamos todos los descuentos
             }
 
             // PASO 6: Insertamos los nuevos servicios de mano de obra
-            String sqlServicioUpd = "INSERT INTO servicioorden (id_orden_fk, nombre, valor) VALUES (?, ?, ?)";
+            String sqlServicioUpd = "INSERT INTO servicioorden (id_orden_fk, id_servicio_fk, valor_cobrado) VALUES (?, ?, ?)";
             try (PreparedStatement psSrvUpd = con.prepareStatement(sqlServicioUpd)) {
                 for (ServicioOrden s : nuevosServicios) {
-                    if (s.getNombre() != null && !s.getNombre().trim().isEmpty() && s.getValor() > 0) {
+                    if (s.getIdServicioFk() > 0 && s.getValorCobrado() >= 0) {
                         psSrvUpd.setInt(1, o.getIdOrden());
-                        psSrvUpd.setString(2, s.getNombre().trim());
-                        psSrvUpd.setDouble(3, s.getValor());
+                        psSrvUpd.setInt(2, s.getIdServicioFk());
+                        psSrvUpd.setDouble(3, s.getValorCobrado());
                         psSrvUpd.addBatch();
                     }
                 }
@@ -490,14 +494,16 @@ public class OrdenDAO {
         }
     }
 
-    // ===================================================================
-    // MÉTODO: obtenerServiciosDeOrden — Lista los servicios de mano de obra de una orden
-    // Lo usa la factura y el formulario de edición para mostrar los servicios registrados
-    // ===================================================================
+    /**
+     * Listamos los servicios (mano de obra) que tenemos registrados para una orden en particular.
+     * Lo usamos en nuestra factura y en nuestro formulario de edición para poder mostrar lo que hemos cobrado.
+     * @param idOrden ID de nuestra orden.
+     * @return Lista de los servicios que hemos asociado a la orden.
+     */
     public List<ServicioOrden> obtenerServiciosDeOrden(int idOrden) {
         List<ServicioOrden> lista = new ArrayList<>();
 
-        String sql = "SELECT * FROM servicioorden WHERE id_orden_fk = ? ORDER BY id_servicio ASC";
+        String sql = "SELECT so.*, s.nombre FROM servicioorden so JOIN servicio s ON so.id_servicio_fk = s.id_servicio WHERE so.id_orden_fk = ? ORDER BY so.id_servicio ASC";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -508,8 +514,9 @@ public class OrdenDAO {
                     ServicioOrden s = new ServicioOrden();
                     s.setIdServicio(rs.getInt("id_servicio"));    // ID del servicio
                     s.setIdOrdenFk(rs.getInt("id_orden_fk"));     // ID de la orden padre
+                    s.setIdServicioFk(rs.getInt("id_servicio_fk")); // ID del catálogo
                     s.setNombre(rs.getString("nombre"));           // Nombre del servicio
-                    s.setValor(rs.getDouble("valor"));             // Valor de la mano de obra
+                    s.setValorCobrado(rs.getDouble("valor_cobrado"));             // Valor cobrado
                     lista.add(s);
                 }
             }
@@ -519,10 +526,13 @@ public class OrdenDAO {
         return lista;
     }
 
-    // ===================================================================
-    // MÉTODO PRIVADO: mapearOrden — Convierte una fila del ResultSet en objeto OrdenTrabajo
-    // Lo reutilizan varios métodos de esta clase para no repetir el mismo código de mapeo
-    // ===================================================================
+    /**
+     * Nosotros convertimos una fila del ResultSet en nuestro objeto OrdenTrabajo.
+     * Esto lo reutilizamos en varios de nuestros métodos de esta clase para no tener que repetir el mismo código de mapeo.
+     * @param rs ResultSet con los datos que hemos obtenido.
+     * @return Objeto OrdenTrabajo que hemos mapeado.
+     * @throws SQLException Si nos ocurre algún problema de lectura.
+     */
     private OrdenTrabajo mapearOrden(ResultSet rs) throws SQLException {
         OrdenTrabajo o = new OrdenTrabajo();
         o.setIdOrden(rs.getInt("id_orden"));             // ID único de la orden

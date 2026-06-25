@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
@@ -16,7 +16,7 @@
 
 <body>
 
-        <header class="navbar">
+    <header class="navbar">
         <div class="navbar__logo">
             <img src="${pageContext.request.contextPath}/LogoI_mg/Logo_blanco.png" alt="Logo MotorDesk" class="navbar__logo-img" />
         </div>
@@ -29,6 +29,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item active">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -49,13 +51,17 @@
 
             <article class="admin-card" style="padding: 1.5rem;">
                 <div style="margin-bottom: 1rem;">
-                    <input type="text" id="filtroProveedor" class="form-input" placeholder="🔍 Buscar por proveedor..." onkeyup="filtrarCompras()" style="max-width: 300px;" />
+                    <input type="text" id="filtroProveedor" class="form-input"
+                           placeholder="🔍 Buscar por proveedor..."
+                           onkeyup="filtrarCompras()"
+                           style="max-width: 300px;" />
                 </div>
                 <div style="overflow-x: auto;">
+                    <!-- Tabla para el registro y monitoreo de compras o ingresos al inventario -->
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>N° Orden</th>
+                                <th>N°</th>
                                 <th>Proveedor</th>
                                 <th>Fecha de Compra</th>
                                 <th>Total Pagado</th>
@@ -63,19 +69,25 @@
                         </thead>
                         <tbody>
                             <c:choose>
+                                <%-- El bucle itera sobre la lista compras enviada por el servlet y dibuja una fila por registro --%>
                                 <c:when test="${not empty requestScope.compras}">
-                                    <c:forEach var="compra" items="${requestScope.compras}">
+                                    <%-- varStatus.count siempre empieza en 1 sin importar el ID de la BD --%>
+                                    <c:forEach var="compra" items="${requestScope.compras}" varStatus="fila">
                                         <tr class="compra-row">
-                                            <td># ${compra.idCompra}</td>
+                                            <td># ${fila.count}</td>
                                             <td>${not empty compra.nombreProveedor ? compra.nombreProveedor : 'Proveedor Eliminado'}</td>
                                             <td><fmt:formatDate value="${compra.fechaCompra}" pattern="dd/MM/yyyy" /></td>
-                                            <td style="font-weight: bold; color: #2ecc71;">$ <fmt:formatNumber value="${compra.total}" pattern="#,##0.00" /></td>
+                                            <td style="font-weight: bold; color: #2ecc71;">
+                                                $ <fmt:formatNumber value="${compra.total}" pattern="#,##0.00" />
+                                            </td>
                                         </tr>
                                     </c:forEach>
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="4" style="text-align: center; opacity: 0.6; padding: 20px;">No hay registros de compras.</td>
+                                        <td colspan="4" style="text-align: center; opacity: 0.6; padding: 20px;">
+                                            No hay registros de compras.
+                                        </td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -117,6 +129,6 @@
             });
         }
     </script>
+
 </body>
 </html>
-

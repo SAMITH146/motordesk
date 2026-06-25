@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="es">
@@ -54,6 +54,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -75,71 +77,7 @@
             <% session.removeAttribute("mensaje"); session.removeAttribute("tipoMensaje"); %>
         </c:if>
 
-        <section id="clientes" class="admin-section">
-            <header>
-                <h2 class="admin-section__title">Gestión de Clientes</h2>
-                <p class="admin-section__subtitle">Administra los datos de los clientes y dueños de vehículos.</p>
-            </header>
-
-            <div class="admin-table-container">
-                <table class="admin-table">
-                    <thead class="admin-table__head">
-                        <tr>
-                            <th class="admin-table__th">ID</th>
-                            <th class="admin-table__th">Documento</th>
-                            <th class="admin-table__th">Nombre</th>
-                            <th class="admin-table__th">Dirección</th>
-                            <th class="admin-table__th">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty requestScope.listaClientes}">
-                                <c:forEach var="cliente" items="${requestScope.listaClientes}">
-                                    <tr class="admin-table__row">
-                                        <td class="admin-table__td">
-                                            <c:out value="${cliente.idCliente}" />
-                                        </td>
-                                        <td class="admin-table__td">
-                                            <c:out value="${cliente.documento}" />
-                                        </td>
-                                        <td class="admin-table__td">
-                                            <c:out value="${cliente.nombre}" />
-                                        </td>
-                                        <td class="admin-table__td">
-                                            <c:out value="${cliente.direccion}" />
-                                        </td>
-                                        <td class="admin-table__td">
-                                            <div class="admin-table__actions">
-                                                <a href="${pageContext.request.contextPath}/ClienteController?action=edit&doc=${cliente.documento}#formCliente"
-                                                    class="admin-action-btn admin-action-btn--edit"
-                                                    title="Editar">✏️ Editar</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr class="admin-table__row">
-                                    <td class="admin-table__td" colspan="5" style="text-align: center;">No hay
-                                        clientes registrados.</td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-
-            <c:if test="${not empty requestScope.clienteEditar}">
-                <article id="formCliente" class="admin-form-section">
-                    <h3 class="admin-form-section__title">Editar Cliente</h3>
-                    <form class="admin-form" action="${pageContext.request.contextPath}/ClienteController"
-                        method="post">
-
-                        <input type="hidden" name="action" value="update">
-
-                        <div class="admin-form__group">
-                            <label class="admin-form__label" for="doc_cliente">Documento:</label>
+                            <!-- Aquí renderizamos el input para ingresar o mostrar el documento del cliente -->
                             <input class="admin-form__input" type="text" id="doc_cliente" name="doc_cliente" required
                                 placeholder="Ej: 123456789" value="${requestScope.clienteEditar.documento}" readonly
                                 minlength="6" maxlength="15" pattern="\d+" title="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -147,6 +85,7 @@
 
                         <div class="admin-form__group">
                             <label class="admin-form__label" for="nom_cliente">Nombre Completo:</label>
+                            <!-- Aquí renderizamos el input para ingresar o editar el nombre del cliente -->
                             <input class="admin-form__input" type="text" id="nom_cliente" name="nom_cliente"
                                 required placeholder="Nombre y Apellidos" value="${requestScope.clienteEditar.nombre}" autocomplete="off"
                                 pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo se permiten letras y espacios" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')">
@@ -154,6 +93,7 @@
 
                         <div class="admin-form__group">
                             <label class="admin-form__label" for="direccion_cliente">Dirección:</label>
+                            <!-- Aquí renderizamos el input para registrar o actualizar la dirección del cliente -->
                             <input class="admin-form__input" type="text" id="direccion_cliente" name="direccion_cliente"
                                 required placeholder="Dirección del cliente" value="${requestScope.clienteEditar.direccion}" autocomplete="off">
                         </div>

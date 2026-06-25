@@ -4,14 +4,21 @@ package com.mycompany.motordesk.model;
 // Importación de dependencias y clases necesarias
 import java.util.Date;
 
-// Clase pública CompraRepuesto que gestiona la lógica correspondiente
+/**
+ * Clase pública CompraRepuesto que gestiona la lógica correspondiente a las compras de repuestos.
+ * Representa una transacción en la que el taller adquiere productos o repuestos de un proveedor.
+ */
 public class CompraRepuesto {
+    // Identificador único de la compra (llave primaria generada por la base de datos)
     private int idCompra;
+    // Identificador del proveedor al que se le realiza la compra (llave foránea)
     private int idProveedorFk;
+    // Fecha exacta en la que se efectuó la transacción de compra
     private Date fechaCompra;
+    // Monto total pagado por la compra de los repuestos
     private double total;
 
-    // Auxiliar para mostrar informacion en las vistas
+    // Atributo auxiliar para mostrar el nombre del proveedor en las vistas (no se guarda directamente en la tabla de compra)
     private String nombreProveedor;
 
     // Constructor por defecto (vacío)

@@ -1,100 +1,109 @@
-// Definición del paquete del proyecto
+// Comenzamos definiendo el paquete de nuestro proyecto
 package com.mycompany.motordesk.dao;
 
-// Importación de dependencias y clases necesarias
+// Ahora, importamos las dependencias y clases necesarias para conectarnos a la base de datos
 import com.mycompany.motordesk.config.Conexion;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-// Clase pública AdminDAO que gestiona la lógica correspondiente
+// Aquí presentamos nuestra clase pública AdminDAO, la cual gestiona toda nuestra lógica administrativa
+/**
+ * Como pueden ver, esta es nuestra Clase de Acceso a Datos (DAO) para las operaciones del Administrador.
+ * Aquí nosotros gestionamos consultas generales de negocio, como nuestro conteo de mecánicos, productos y órdenes.
+ */
 public class AdminDAO {
 
-    // Método público 'contarMecanicosActivos'
+    /**
+     * En esta primera función, nosotros contamos la cantidad de mecánicos que tenemos actualmente activos en nuestro sistema.
+     * @return El número de nuestros mecánicos activos.
+     */
     public int contarMecanicosActivos() {
         int total = 0;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Para esto, preparamos nuestra consulta SQL: Filtramos por id_rol_fk = 2 (nuestros Mecánicos) y estado 'ACTIVO'
         String sql = "SELECT COUNT(*) FROM empleado WHERE id_rol_fk = 2 AND estado_empleado = 'ACTIVO'";
-        // Obtención de la conexión física a la base de datos MySQL
+        
+        // Utilizamos un bloque try-with-resources para asegurarnos de que cerramos nuestra conexión, el PreparedStatement y el ResultSet automáticamente
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql);
-             // Objeto ResultSet para almacenar los resultados del query de base de datos
              ResultSet rs = ps.executeQuery()) {
-            // Validación condicional
+             
+            // Si encontramos resultados, extraemos el valor de nuestra primera columna
             if (rs.next()) {
                 total = rs.getInt(1);
             }
         } catch (Exception e) {
+            // Si algo sale mal con nuestra base de datos, nosotros imprimimos el error en consola
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
         return total;
     }
 
-    // Método público 'contarProductos'
+    /**
+     * Ahora pasamos a este método, donde contamos nuestra cantidad total de productos en el inventario.
+     * @return El número total de productos que tenemos.
+     */
     public int contarProductos() {
         int total = 0;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Lanzamos nuestra consulta SQL: Contamos todos los registros en nuestra tabla producto
         String sql = "SELECT COUNT(*) FROM producto";
-        // Obtención de la conexión física a la base de datos MySQL
+        
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql);
-             // Objeto ResultSet para almacenar los resultados del query de base de datos
              ResultSet rs = ps.executeQuery()) {
-            // Validación condicional
+             
+            // Extraemos el resultado de nuestro conteo
             if (rs.next()) {
                 total = rs.getInt(1);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
         return total;
     }
 
-    // Método público 'contarStockCritico'
+    /**
+     * En esta sección, nosotros determinamos cuántos productos se encuentran en nuestro stock crítico (menos de 5 unidades).
+     * @return El número de productos con bajo stock en nuestra tienda.
+     */
     public int contarStockCritico() {
         int total = 0;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Armamos nuestra consulta SQL para filtrar los productos cuya cantidad en stock es menor a 5
         String sql = "SELECT COUNT(*) FROM producto WHERE stock < 5";
-        // Obtención de la conexión física a la base de datos MySQL
+        
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql);
-             // Objeto ResultSet para almacenar los resultados del query de base de datos
              ResultSet rs = ps.executeQuery()) {
-            // Validación condicional
+             
+            // Obtenemos el resultado de nuestra función agregada COUNT(*)
             if (rs.next()) {
                 total = rs.getInt(1);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
         return total;
     }
 
-    // Método público 'contarOrdenesTotales'
+    /**
+     * Finalmente, con este método contamos nuestro total de órdenes de trabajo registradas en el sistema.
+     * @return El número total de nuestras órdenes de trabajo.
+     */
     public int contarOrdenesTotales() {
         int total = 0;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Ejecutamos nuestra consulta SQL para contar todas las filas en ordentrabajo, sin importar su estado
         String sql = "SELECT COUNT(*) FROM ordentrabajo";
-        // Obtención de la conexión física a la base de datos MySQL
+        
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql);
-             // Objeto ResultSet para almacenar los resultados del query de base de datos
              ResultSet rs = ps.executeQuery()) {
-            // Validación condicional
+             
             if (rs.next()) {
                 total = rs.getInt(1);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
         return total;
     }
 }

@@ -1,18 +1,26 @@
 // Definición del paquete del proyecto
 package com.mycompany.motordesk.model;
 
-// Clase pública DetalleCompra que gestiona la lógica correspondiente
+/**
+ * Clase pública DetalleCompra que gestiona la lógica correspondiente a los detalles de una compra.
+ * Representa cada uno de los repuestos o productos específicos adquiridos en una compra general a un proveedor.
+ */
 public class DetalleCompra {
+    // Identificador único del detalle de compra (llave primaria)
     private int idDetalleCompra;
+    // Identificador de la compra a la que pertenece este detalle (llave foránea)
     private int idCompraFk;
+    // Identificador del repuesto o producto adquirido (llave foránea)
     private int idRepuestoFk;
+    // Cantidad de unidades compradas de este repuesto
     private int cantidad;
+    // Precio o costo por unidad del repuesto comprado
     private double costoUnitario;
 
-    // Auxiliar para mostrar el nombre del repuesto en las vistas
+    // Atributo auxiliar para mostrar el nombre del repuesto en las interfaces gráficas o vistas
     private String nombreRepuesto;
     
-    // Auxiliar para establecer el nuevo precio de venta al público en la tabla de productos
+    // Atributo auxiliar usado para calcular y establecer el nuevo precio de venta al público en la tabla de productos
     private double nuevoPrecioVenta;
 
     // Constructor por defecto (vacío)

@@ -1,7 +1,7 @@
-// Definición del paquete del proyecto
+// Definimos el paquete de nuestro proyecto
 package com.mycompany.motordesk.dao;
 
-// Importación de dependencias y clases necesarias
+// Importamos todas las dependencias y clases que vamos a utilizar
 import com.mycompany.motordesk.config.Conexion;
 import com.mycompany.motordesk.model.Vehiculo;
 import java.sql.Connection;
@@ -11,58 +11,68 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-// Clase pública VehiculoDAO que gestiona la lógica correspondiente
+// En esta parte presentamos nuestra clase pública VehiculoDAO, la cual gestiona toda la lógica correspondiente
+/**
+ * Les presentamos nuestra Clase de Acceso a Datos (DAO) para la gestión de Vehículos.
+ * Nosotros la diseñamos para permitirnos registrar, actualizar y buscar los vehículos asociados a nuestros clientes.
+ */
 public class VehiculoDAO {
 
-    // Método público 'insertar'
+    /**
+     * Mediante este método, insertamos un nuevo vehículo en nuestra base de datos y retornamos el ID que se genere.
+     * @param vehiculo Objeto Vehiculo con los datos que vamos a registrar.
+     * @return El ID asignado por la base de datos (id_vehiculo) o -1 si falla nuestro proceso.
+     */
     public int insertar(Vehiculo vehiculo) {
         int idGenerado = -1;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
-        String sql = "INSERT INTO vehiculo (id_cliente_fk, placa, marca, modelo, anio) VALUES (?, ?, ?, ?, ?)";
+        // Preparamos nuestra consulta SQL con marcadores '?' para prevenir cualquier inyección SQL
+        String sql = "INSERT INTO vehiculo (id_cliente_fk, placa, marca, modelo, anio, tipo_vehiculo) VALUES (?, ?, ?, ?, ?, ?)";
         
-        // Obtención de la conexión física a la base de datos MySQL
+        // Le indicamos a MySQL con Statement.RETURN_GENERATED_KEYS que nos devuelva el ID que se ha creado
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
+            // Asignamos nuestros valores a los parámetros
             ps.setInt(1, vehiculo.getIdClienteFk());
             ps.setString(2, vehiculo.getPlaca());
             ps.setString(3, vehiculo.getMarca());
             ps.setString(4, vehiculo.getModelo());
             ps.setInt(5, vehiculo.getAnio());
+            ps.setString(6, vehiculo.getTipoVehiculo());
             
-            // Validación condicional
+            // Verificamos si nuestra inserción afectó al menos una fila
             if (ps.executeUpdate() > 0) {
-                // Objeto ResultSet para almacenar los resultados del query de base de datos
+                // Recuperamos las claves generadas por MySQL
                 try (ResultSet rs = ps.getGeneratedKeys()) {
-                    // Validación condicional
                     if (rs.next()) {
-                        idGenerado = rs.getInt(1);
-                        vehiculo.setIdVehiculo(idGenerado);
+                        idGenerado = rs.getInt(1); // Tomamos el primer valor, que es el ID autoincremental
+                        vehiculo.setIdVehiculo(idGenerado); // Actualizamos nuestro objeto en la memoria
                     }
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // En caso de error (ej. placa duplicada), lo imprimimos en nuestra consola
         }
-        // Retornar el valor obtenido
         return idGenerado;
     }
 
-    // Método público 'obtenerPorPlaca'
+    /**
+     * En este método, buscamos un vehículo por su número de placa (recordemos que es única).
+     * @param placa Placa del vehículo a buscar.
+     * @return Objeto Vehiculo si lo encontramos, o null si no existe.
+     */
     public Vehiculo obtenerPorPlaca(String placa) {
         Vehiculo v = null;
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Definimos la consulta SQL para buscar por placa
         String sql = "SELECT * FROM vehiculo WHERE placa = ?";
-        // Obtención de la conexión física a la base de datos MySQL
+        
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
             
-            ps.setString(1, placa);
-            // Objeto ResultSet para almacenar los resultados del query de base de datos
+            ps.setString(1, placa); // Asignamos la placa a nuestra consulta
+            
+            // Ejecutamos nuestra consulta y recorremos el resultado
             try (ResultSet rs = ps.executeQuery()) {
-                // Validación condicional
                 if (rs.next()) {
                     v = new Vehiculo(
                         rs.getInt("id_vehiculo"),
@@ -72,90 +82,96 @@ public class VehiculoDAO {
                         rs.getString("modelo"),
                         rs.getInt("anio")
                     );
+                    v.setTipoVehiculo(rs.getString("tipo_vehiculo"));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
         return v;
     }
 
-    // Método público 'actualizar'
+    /**
+     * Aquí actualizamos la información de un vehículo que ya existe.
+     * Usamos la placa como nuestro criterio de búsqueda (WHERE placa = ?).
+     * @param vehiculo Objeto Vehiculo con los datos que hemos actualizado.
+     * @return true si logramos actualizarlo correctamente, false si falló.
+     */
     public boolean actualizar(Vehiculo vehiculo) {
-        // Definición de la sentencia SQL para ejecutar en la base de datos
-        String sql = "UPDATE vehiculo SET marca = ?, modelo = ?, anio = ?, id_cliente_fk = ? WHERE placa = ?";
-        // Obtención de la conexión física a la base de datos MySQL
+        // Preparamos nuestra consulta SQL de actualización
+        String sql = "UPDATE vehiculo SET marca = ?, modelo = ?, anio = ?, id_cliente_fk = ?, tipo_vehiculo = ? WHERE placa = ?";
+        
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
             
             ps.setString(1, vehiculo.getMarca());
             ps.setString(2, vehiculo.getModelo());
             ps.setInt(3, vehiculo.getAnio());
             ps.setInt(4, vehiculo.getIdClienteFk());
-            ps.setString(5, vehiculo.getPlaca());
+            ps.setString(5, vehiculo.getTipoVehiculo());
+            ps.setString(6, vehiculo.getPlaca()); // Colocamos la placa en nuestra cláusula WHERE
             
-            // Retornar el valor obtenido
+            // Retornamos true si modificamos al menos una fila
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
-            // Retornar el valor obtenido
             return false;
         }
     }
 
+    /**
+     * Con esto, obtenemos una lista de todos los vehículos que pertenecen a uno de nuestros clientes en particular.
+     * @param idClienteFk ID interno del cliente (foránea).
+     * @return Lista de vehículos del cliente que encontramos.
+     */
     public List<Vehiculo> listarPorCliente(int idClienteFk) {
         List<Vehiculo> lista = new ArrayList<>();
-        // Definición de la sentencia SQL para ejecutar en la base de datos
+        // Formulamos la consulta SQL filtrando por id_cliente_fk
         String sql = "SELECT * FROM vehiculo WHERE id_cliente_fk = ?";
-        // Obtención de la conexión física a la base de datos MySQL
+        
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
             
             ps.setInt(1, idClienteFk);
-            // Objeto ResultSet para almacenar los resultados del query de base de datos
+            
             try (ResultSet rs = ps.executeQuery()) {
+                // Iteramos sobre todos los vehículos que logramos encontrar
                 while (rs.next()) {
-                    lista.add(new Vehiculo(
+                    Vehiculo v = new Vehiculo(
                         rs.getInt("id_vehiculo"),
                         rs.getInt("id_cliente_fk"),
                         rs.getString("placa"),
                         rs.getString("marca"),
                         rs.getString("modelo"),
                         rs.getInt("anio")
-                    ));
+                    );
+                    v.setTipoVehiculo(rs.getString("tipo_vehiculo"));
+                    lista.add(v); // Y los vamos agregando a nuestra lista
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Retornar el valor obtenido
         return lista;
     }
 
-    // Método para obtener un Vehículo a partir de su ID primario autoincremental
-    // Método público 'obtenerPorId'
+    /**
+     * En este paso, buscamos y obtenemos un vehículo usando su ID primario numérico (el autoincremental).
+     * @param id Identificador único del vehículo en nuestra base de datos.
+     * @return Objeto Vehiculo que hemos encontrado, o null si no logramos ubicarlo.
+     */
     public Vehiculo obtenerPorId(int id) {
-        Vehiculo v = null; // Inicializamos el objeto de retorno como nulo
-        // Definición de la sentencia SQL para ejecutar en la base de datos
-        String sql = "SELECT * FROM vehiculo WHERE id_vehiculo = ?"; // Consulta SQL parametrizada
+        Vehiculo v = null;
+        // Construimos nuestra consulta SQL para buscar por id_vehiculo
+        String sql = "SELECT * FROM vehiculo WHERE id_vehiculo = ?";
         
-        // Abrimos la conexión física a la BD y preparamos el statement para ejecución segura
-        // Obtención de la conexión física a la base de datos MySQL
         try (Connection con = Conexion.getConexion();
-             // Declaración de consulta preparada para prevenir inyección SQL
              PreparedStatement ps = con.prepareStatement(sql)) {
             
-            ps.setInt(1, id); // Asignamos el parámetro ID al primer marcador '?'
+            ps.setInt(1, id); // Asignamos el parámetro de nuestro ID
             
-            // Ejecutamos la consulta y recuperamos los resultados de la BD
-            // Objeto ResultSet para almacenar los resultados del query de base de datos
             try (ResultSet rs = ps.executeQuery()) {
-                // Validación condicional
-                if (rs.next()) { // Si se encuentra un registro coincidente
-                    // Mapeamos los datos y construimos el objeto Vehículo usando el constructor de su clase modelo
+                if (rs.next()) { // Si el registro existe, pasamos a crear nuestro objeto
                     v = new Vehiculo(
                         rs.getInt("id_vehiculo"),
                         rs.getInt("id_cliente_fk"),
@@ -164,12 +180,12 @@ public class VehiculoDAO {
                         rs.getString("modelo"),
                         rs.getInt("anio")
                     );
+                    v.setTipoVehiculo(rs.getString("tipo_vehiculo"));
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Imprime la traza de errores en la consola en caso de excepciones
+            e.printStackTrace();
         }
-        // Retornar el valor obtenido
-        return v; // Devuelve el vehículo encontrado o nulo
+        return v;
     }
 }

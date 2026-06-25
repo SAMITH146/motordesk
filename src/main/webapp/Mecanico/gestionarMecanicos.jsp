@@ -48,15 +48,18 @@
                         class="navbar__logo-img" />
                 </div>
 
-                <nav class="navbar__menu" aria-label="Menu principal">
+                 <nav class="navbar__menu" aria-label="Menu principal">
                     <a href="${pageContext.request.contextPath}/AdminDashboard" class="navbar__menu-item">Dashboard</a>
                     <a href="${pageContext.request.contextPath}/MecanicoController"
                         class="navbar__menu-item active">Mecánicos</a>
                     <a href="${pageContext.request.contextPath}/ClienteController" class="navbar__menu-item">Clientes</a>
+                    <a href="${pageContext.request.contextPath}/ProveedorController" class="navbar__menu-item">Proveedores</a>
                     <a href="${pageContext.request.contextPath}/ProductoController" class="navbar__menu-item">Productos</a>
                     <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
                     <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
                     <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+                    <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
                 </nav>
 
                 <div class="navbar__session">
@@ -89,6 +92,7 @@
 
 
 
+                    <!-- Tabla para visualizar el listado de todos los mecánicos registrados en el sistema -->
                     <div class="admin-table-container">
                         <table class="admin-table">
                             <thead class="admin-table__head">
@@ -103,6 +107,7 @@
                             </thead>
                             <tbody>
                                 <c:choose>
+                                    <%-- El bucle itera sobre la listaMecanicos proporcionada por el controlador y dibuja una fila por empleado --%>
                                     <c:when test="${not empty requestScope.listaMecanicos}">
                                         <c:forEach var="mecanico" items="${requestScope.listaMecanicos}">
                                             <tr class="admin-table__row">
@@ -174,6 +179,8 @@
                         </table>
                     </div>
 
+                    <!-- Formulario dual para registrar un nuevo mecánico o editar los datos de uno ya existente -->
+                    <%-- Envía la acción (insert o update) y los datos por POST al MecanicoController --%>
                     <article id="formMecanico" class="admin-form-section">
                         <h3 class="admin-form-section__title">${not empty requestScope.empleadoEditar ? 'Editar Mecánico' : 'Registrar Mecánico'}</h3>
                         <form class="admin-form" action="${pageContext.request.contextPath}/MecanicoController"
@@ -185,7 +192,7 @@
                                 <label class="admin-form__label" for="doc_emple">Documento:</label>
                                 <input class="admin-form__input" type="text" id="doc_emple" name="doc_emple" required
                                     placeholder="Ej: 123456789" value="${requestScope.empleadoEditar.idEmpleado}" ${not empty requestScope.empleadoEditar ? 'readonly' : ''}
-                                    minlength="9" maxlength="10" pattern="\d{9,10}" title="El documento debe tener 9 o 10 números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                                    minlength="6" maxlength="10" pattern="\d{6,10}" title="El documento debe tener entre 6 y 10 números" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                             </div>
 
                             <div class="admin-form__group">

@@ -1,68 +1,46 @@
-// Definición del paquete del proyecto
 package com.mycompany.motordesk.model;
 
-// Clase pública ServicioOrden — representa una línea de servicio (mano de obra)
-// dentro de una Orden de Trabajo. Una orden puede tener N servicios.
+/**
+ * Clase pública ServicioOrden — representa la relación entre una Orden de Trabajo y un Servicio específico del catálogo de la base de datos.
+ * Sirve para detallar qué servicios exactos se aplicaron a una orden particular (Normalización 3NF).
+ */
 public class ServicioOrden {
 
-    private int    idServicio;   // PK autogenerada por MySQL
-    private int    idOrdenFk;    // FK → ordentrabajo.id_orden
-    private String nombre;       // Nombre del servicio (ej: "Despinche", "Revisión de suspensión")
-    private double valor;        // Precio de la mano de obra para este servicio
+    // Identificador único de este registro o detalle de servicio (llave primaria autogenerada)
+    private int idServicio;
+    // Identificador de la orden de trabajo a la que se le aplicó el servicio (llave foránea)
+    private int idOrdenFk;
+    // Identificador del servicio del catálogo maestro que se realizó (llave foránea)
+    private int idServicioFk;
+    // Valor real que se cobró al cliente en esta orden por el servicio (puede diferir del precio estándar)
+    private double valorCobrado;
+    // Campo de apoyo o auxiliar: nombre del servicio (se llena dinámicamente mediante una consulta JOIN en la base de datos)
+    private String nombre;
 
     // Constructor por defecto (vacío)
     public ServicioOrden() {}
 
-    // Constructor de conveniencia para crear objetos desde el controlador
-    public ServicioOrden(int idOrdenFk, String nombre, double valor) {
+    // Constructor de conveniencia
+    public ServicioOrden(int idOrdenFk, int idServicioFk, double valorCobrado) {
         this.idOrdenFk = idOrdenFk;
-        this.nombre    = nombre;
-        this.valor     = valor;
+        this.idServicioFk = idServicioFk;
+        this.valorCobrado = valorCobrado;
     }
 
     // ---- Getters y Setters ----
 
-    // Método Getter para recuperar el valor de IdServicio
-    public int getIdServicio() {
-        // Retornar el valor obtenido
-        return idServicio;
-    }
+    public int getIdServicio() { return idServicio; }
+    public void setIdServicio(int idServicio) { this.idServicio = idServicio; }
 
-    // Método Setter para establecer el valor de IdServicio
-    public void setIdServicio(int idServicio) {
-        this.idServicio = idServicio;
-    }
+    public int getIdOrdenFk() { return idOrdenFk; }
+    public void setIdOrdenFk(int idOrdenFk) { this.idOrdenFk = idOrdenFk; }
 
-    // Método Getter para recuperar el valor de IdOrdenFk
-    public int getIdOrdenFk() {
-        // Retornar el valor obtenido
-        return idOrdenFk;
-    }
+    public int getIdServicioFk() { return idServicioFk; }
+    public void setIdServicioFk(int idServicioFk) { this.idServicioFk = idServicioFk; }
 
-    // Método Setter para establecer el valor de IdOrdenFk
-    public void setIdOrdenFk(int idOrdenFk) {
-        this.idOrdenFk = idOrdenFk;
-    }
+    public double getValorCobrado() { return valorCobrado; }
+    public void setValorCobrado(double valorCobrado) { this.valorCobrado = valorCobrado; }
 
-    // Método Getter para recuperar el valor de Nombre
-    public String getNombre() {
-        // Retornar el valor obtenido
-        return nombre;
-    }
-
-    // Método Setter para establecer el valor de Nombre
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    // Método Getter para recuperar el valor de Valor
-    public double getValor() {
-        // Retornar el valor obtenido
-        return valor;
-    }
-
-    // Método Setter para establecer el valor de Valor
-    public void setValor(double valor) {
-        this.valor = valor;
-    }
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
 }

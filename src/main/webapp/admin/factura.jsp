@@ -27,6 +27,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -65,10 +67,32 @@
 
                 <div class="factura-header__meta">
                     <span class="factura-header__meta-title">FACTURA COMERCIAL</span>
-                    <span class="factura-header__meta-id">N° MD-<fmt:formatNumber value="${orden.idOrden}" pattern="0000"/></span>
-                    <span class="factura-header__meta-text">
-                        <strong>Fecha Emisión:</strong> <fmt:formatDate value="${orden.fecha}" pattern="dd/MM/yyyy" />
+                    <span class="factura-header__meta-id">
+                        <c:choose>
+                            <c:when test="${not empty facturaRegistrada}">
+                                ${facturaRegistrada.numeroFactura}
+                            </c:when>
+                            <c:otherwise>
+                                N° MD-<fmt:formatNumber value="${orden.idOrden}" pattern="0000"/>
+                            </c:otherwise>
+                        </c:choose>
                     </span>
+                    <span class="factura-header__meta-text">
+                        <strong>Fecha Emisión:</strong> 
+                        <c:choose>
+                            <c:when test="${not empty facturaRegistrada}">
+                                <fmt:formatDate value="${facturaRegistrada.fechaEmision}" pattern="dd/MM/yyyy hh:mm a" />
+                            </c:when>
+                            <c:otherwise>
+                                <fmt:formatDate value="${orden.fecha}" pattern="dd/MM/yyyy" />
+                            </c:otherwise>
+                        </c:choose>
+                    </span>
+                    <c:if test="${not empty facturaRegistrada}">
+                        <span class="factura-header__meta-text">
+                            <strong>Método Pago:</strong> ${facturaRegistrada.metodoPago}
+                        </span>
+                    </c:if>
                     <div>
                         <span class="factura-status factura-status--${orden.estado.toLowerCase()}">${orden.estado}</span>
                     </div>
@@ -128,6 +152,7 @@
                     <tbody>
                         <%-- ===== SERVICIOS DE MANO DE OBRA ===== --%>
                         <c:choose>
+                            <%-- Bucle que recorre la lista de servicios (mano de obra) realizados en la orden y los muestra en la factura --%>
                             <c:when test="${not empty requestScope.servicios}">
                                 <c:forEach var="srv" items="${requestScope.servicios}">
                                     <tr>
@@ -137,8 +162,8 @@
                                             ${srv.nombre}
                                         </td>
                                         <td style="text-align: center;">1</td>
-                                        <td style="text-align: right;"><fmt:formatNumber value="${srv.valor}" type="currency" currencySymbol="$" /></td>
-                                        <td style="text-align: right; font-weight: 700;"><fmt:formatNumber value="${srv.valor}" type="currency" currencySymbol="$" /></td>
+                                        <td style="text-align: right;"><fmt:formatNumber value="${srv.valorCobrado}" type="currency" currencySymbol="$" /></td>
+                                        <td style="text-align: right; font-weight: 700;"><fmt:formatNumber value="${srv.valorCobrado}" type="currency" currencySymbol="$" /></td>
                                     </tr>
                                 </c:forEach>
                             </c:when>
@@ -160,6 +185,7 @@
 
                         <%-- ===== REPUESTOS ===== --%>
                         <c:choose>
+                            <%-- Bucle que recorre los repuestos/materiales (detalles) consumidos en la orden para cobrarlos --%>
                             <c:when test="${not empty requestScope.detalles}">
                                 <c:forEach var="d" items="${requestScope.detalles}">
                                     <tr>
@@ -211,12 +237,29 @@
                     <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="admin-btn admin-btn--danger back-btn" style="box-shadow:none;">Volver a Órdenes</a>
                     <button onclick="window.print();" class="admin-btn print-btn" style="box-shadow:none;">🖨️ Imprimir Factura</button>
 
+                    <%-- Si ya está FACTURADA, mostrar badge informativo --%>
+                    <c:if test="${orden.estado == 'FACTURADO'}">
+                        <span style="display:inline-flex; align-items:center; gap:8px; padding:8px 16px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); border-radius:10px; color:#10b981; font-weight:700; font-size:0.9rem;">
+                            ✅ Pago Registrado
+                            <c:if test="${not empty facturaRegistrada}">
+                                — ${facturaRegistrada.metodoPago}
+                            </c:if>
+                        </span>
+                    </c:if>
+
+                    <%-- Si está TERMINADO, permitir registrar el pago --%>
                     <c:if test="${orden.estado == 'TERMINADO'}">
-                        <form action="${pageContext.request.contextPath}/OrdenController" method="post" style="display:inline;">
+                        <!-- Formulario visible solo cuando la orden está TERMINADA, permite registrar el pago y cambiar el estado a FACTURADO mediante POST -->
+                        <form action="${pageContext.request.contextPath}/OrdenController" method="post" style="display:inline-flex; align-items:center; gap:10px; vertical-align:middle;">
                             <input type="hidden" name="action" value="updateStatus" />
                             <input type="hidden" name="id_orden" value="${orden.idOrden}" />
                             <input type="hidden" name="nuevo_estado" value="FACTURADO" />
-                            <button type="submit" class="admin-btn payment-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: none;">💵 Registrar Pago y Facturar</button>
+                            <select name="metodo_pago" class="form-input" style="font-size:0.9rem; width:auto; padding:8px 12px; margin:0; border:1px solid rgba(255,255,255,0.1); background:rgba(0,0,0,0.2); color:#fff; border-radius:8px; display:inline-block; vertical-align:middle;">
+                                <option value="EFECTIVO" style="background:#1e293b;">💵 Efectivo</option>
+                                <option value="TARJETA" style="background:#1e293b;">💳 Tarjeta</option>
+                                <option value="TRANSFERENCIA" style="background:#1e293b;">📱 Transferencia</option>
+                            </select>
+                            <button type="submit" class="admin-btn payment-btn" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: none; margin:0; vertical-align:middle;">💵 Registrar Pago</button>
                         </form>
                     </c:if>
                 </div>

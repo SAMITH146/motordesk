@@ -1,15 +1,23 @@
 // Definición del paquete del proyecto
 package com.mycompany.motordesk.model;
 
-// Clase pública DetalleOrden que gestiona la lógica correspondiente
+/**
+ * Clase pública DetalleOrden que gestiona la lógica correspondiente a los elementos dentro de una orden de trabajo.
+ * Cada detalle representa un producto/repuesto utilizado o un servicio aplicado en una orden específica.
+ */
 public class DetalleOrden {
+    // Identificador único del detalle de la orden (llave primaria)
     private int idDetalle;
+    // Identificador de la orden de trabajo asociada (llave foránea)
     private int idOrdenFk;
+    // Identificador del producto o repuesto utilizado en esta orden (llave foránea)
     private int idProductoFk;
+    // Cantidad de productos o unidades del servicio utilizadas
     private int cantidad;
+    // Subtotal calculado (cantidad * precio unitario) para este detalle
     private double subtotal;
     
-    // Auxiliary field for display
+    // Atributo auxiliar para mostrar el nombre del producto en las vistas
     private String nombreProducto;
 
     // Constructor por defecto (vacío)

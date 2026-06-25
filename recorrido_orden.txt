@@ -1,0 +1,409 @@
+================================================================================
+GUÍA DE EXPOSICIÓN Y ARQUITECTURA: FLUJO DE ORDEN DE TRABAJO Y FACTURACIÓN
+================================================================================
+Este documento detalla paso a paso el recorrido completo de una orden de servicio 
+en MotorDesk, desde su creación en el taller hasta la liquidación financiera 
+y facturación. Incluye la estructura relacional (DDL SQL), el flujo MVC (JSPs,
+Servlets, DAOs), el código Java real y las consultas MySQL ejecutadas.
+
+Ideal para sustentación ante el jurado o estudio de arquitectura de software.
+
+--------------------------------------------------------------------------------
+SECCIÓN 1: MODELO DE BASE DE DATOS NORMALIZADO (3NF)
+--------------------------------------------------------------------------------
+El sistema utiliza un esquema relacional normalizado en Tercera Forma Normal (3NF) 
+para evitar redundancias y anomalías de inserción, actualización o eliminación.
+
+A continuación, los DDLs de las tablas principales asociadas a la orden:
+
+1. TABLA: cliente (Datos personales de los clientes/dueños de vehículos)
+   CREATE TABLE cliente (
+       id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+       nom_cliente VARCHAR(150) NOT NULL,
+       doc_cliente VARCHAR(20) NOT NULL UNIQUE,
+       direccion_cliente VARCHAR(255)
+   );
+
+2. TABLA: vehiculo (Vehículos registrados, enlazados al cliente)
+   CREATE TABLE vehiculo (
+       id_vehiculo INT AUTO_INCREMENT PRIMARY KEY,
+       id_cliente_fk INT,
+       placa VARCHAR(10) NOT NULL UNIQUE,
+       marca VARCHAR(50) NOT NULL,
+       modelo VARCHAR(50) NOT NULL,
+       anio INT,
+       tipo_vehiculo VARCHAR(50),
+       FOREIGN KEY (id_cliente_fk) REFERENCES cliente(id_cliente)
+   );
+
+3. TABLA: empleado (Tabla maestra de empleados/mecánicos)
+   CREATE TABLE empleado (
+       doc_emple VARCHAR(20) PRIMARY KEY,
+       nom_empleado VARCHAR(100) NOT NULL,
+       id_cargo_fk INT NOT NULL,
+       id_rol_fk INT NOT NULL,
+       pin_acceso VARCHAR(20) NOT NULL,
+       estado_empleado VARCHAR(20) DEFAULT 'Activo',
+       fecha_ingreso DATE NOT NULL,
+       FOREIGN KEY (id_cargo_fk) REFERENCES cargo(id_cargo) ON DELETE RESTRICT ON UPDATE CASCADE,
+       FOREIGN KEY (id_rol_fk) REFERENCES roles(id_rol) ON DELETE RESTRICT ON UPDATE CASCADE
+   );
+
+4. TABLA: ordentrabajo (Cabecera principal de la orden de servicio)
+   CREATE TABLE ordentrabajo (
+       id_orden INT AUTO_INCREMENT PRIMARY KEY,
+       id_vehiculo_fk INT,
+       doc_emple_fk VARCHAR(20) NULL,
+       estado VARCHAR(30) NOT NULL, -- ABIERTA, PROCESO, ESPERA, TERMINADO, FACTURADO
+       descripcion TEXT,
+       total DECIMAL(12,2) DEFAULT 0.0,
+       placa_vehiculo VARCHAR(10) NOT NULL,
+       fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+       motivo_espera VARCHAR(255) NULL,
+       tiempo_espera VARCHAR(100) NULL,
+       FOREIGN KEY (id_vehiculo_fk) REFERENCES vehiculo(id_vehiculo) ON DELETE RESTRICT,
+       FOREIGN KEY (doc_emple_fk) REFERENCES empleado(doc_emple) ON DELETE RESTRICT ON UPDATE CASCADE
+   );
+
+5. TABLA: producto (Catálogo de repuestos e insumos con control de stock)
+   CREATE TABLE producto (
+       id_producto INT AUTO_INCREMENT PRIMARY KEY,
+       nombre VARCHAR(150) NOT NULL,
+       precio DECIMAL(12,2) NOT NULL,
+       stock INT NOT NULL
+   );
+
+6. TABLA: detalleorden (Repuestos/Insumos consumidos por cada orden - Intersección M:N)
+   CREATE TABLE detalleorden (
+       id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+       id_orden_fk INT NOT NULL,
+       id_repuesto_fk INT NOT NULL,
+       cantidad INT NOT NULL,
+       subtotal DECIMAL(12,2) NOT NULL,
+       FOREIGN KEY (id_orden_fk) REFERENCES ordentrabajo(id_orden) ON DELETE CASCADE,
+       FOREIGN KEY (id_repuesto_fk) REFERENCES producto(id_producto) ON DELETE RESTRICT
+   );
+
+7. TABLA: servicio (Catálogo maestro de servicios de mano de obra disponibles)
+   CREATE TABLE servicio (
+       id_servicio INT AUTO_INCREMENT PRIMARY KEY,
+       nombre VARCHAR(200) NOT NULL UNIQUE,
+       precio_estandar DECIMAL(12,2) NOT NULL
+   );
+
+8. TABLA: servicioorden (Servicios prestados por orden - Intersección M:N con valor real cobrado)
+   CREATE TABLE servicioorden (
+       id_servicioorden INT AUTO_INCREMENT PRIMARY KEY,
+       id_orden_fk INT NOT NULL,
+       id_servicio_fk INT NOT NULL,
+       valor_cobrado DECIMAL(12,2) NOT NULL,
+       FOREIGN KEY (id_orden_fk) REFERENCES ordentrabajo(id_orden) ON DELETE CASCADE,
+       FOREIGN KEY (id_servicio_fk) REFERENCES servicio(id_servicio) ON DELETE RESTRICT
+   );
+
+9. TABLA: factura (Facturas emitidas de manera independiente a la orden)
+   CREATE TABLE factura (
+       id_factura INT AUTO_INCREMENT PRIMARY KEY,
+       id_orden_fk INT NOT NULL UNIQUE,
+       doc_emple_fk VARCHAR(20) NULL, -- Vendedor/Administrador que generó el cobro
+       numero_factura VARCHAR(50) NOT NULL,
+       fecha_emision TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+       subtotal DECIMAL(12,2) NOT NULL,
+       iva DECIMAL(12,2) NOT NULL,
+       total DECIMAL(12,2) NOT NULL,
+       metodo_pago VARCHAR(50) NOT NULL, -- EFECTIVO, TARJETA, TRANSFERENCIA
+       estado VARCHAR(30) DEFAULT 'PAGADA',
+       FOREIGN KEY (id_orden_fk) REFERENCES ordentrabajo(id_orden) ON DELETE CASCADE,
+       FOREIGN KEY (doc_emple_fk) REFERENCES empleado_historico(doc_emple) ON DELETE RESTRICT ON UPDATE CASCADE
+   );
+
+10. TABLA: bitacora (Registro de auditoría/seguridad del sistema)
+    CREATE TABLE bitacora (
+        id_bitacora INT AUTO_INCREMENT PRIMARY KEY,
+        doc_emple_fk VARCHAR(20) NULL,
+        nombre_usuario VARCHAR(150) NULL,
+        accion VARCHAR(255) NOT NULL, -- CREAR ORDEN, MODIFICAR ORDEN, FACTURACION, LOGIN
+        detalle TEXT,
+        fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (doc_emple_fk) REFERENCES empleado(doc_emple) ON DELETE SET NULL ON UPDATE CASCADE
+    );
+
+--------------------------------------------------------------------------------
+FASE 1: CREACIÓN DE LA ORDEN DE TRABAJO (PANEL DEL MECÁNICO)
+--------------------------------------------------------------------------------
+1. El mecánico entra al Panel de Mecánico (Mecanico/panelMecanico.jsp).
+   Llena los datos del cliente, vehículo, problema reportado, repuestos (cantidades) 
+   y mano de obra del catálogo con sus precios pactados.
+   El formulario envía vía POST una solicitud al OrdenController con la acción "insert".
+
+2. El OrdenController (Servlet) procesa los datos:
+   - Verifica si el cliente ya existe en la BD por documento (ClienteDAO.obtenerPorDocumento).
+     - Si no existe, lo crea: INSERT INTO cliente (nom_cliente, doc_cliente, direccion_cliente) VALUES (?, ?, ?);
+     - Si existe, actualiza los datos que pudieron cambiar: UPDATE cliente SET nom_cliente = ?, direccion_cliente = ? WHERE id_cliente = ?;
+   - Verifica si el vehículo existe por placa (VehiculoDAO.obtenerPorPlaca).
+     - Si no existe, lo crea: INSERT INTO vehiculo (id_cliente_fk, placa, marca, modelo, anio, tipo_vehiculo) VALUES (?, ?, ?, ?, ?, ?);
+     - Si existe, actualiza su dueño e información.
+   - Crea un objeto OrdenTrabajo y construye las listas de DetalleOrden (repuestos) 
+     y ServicioOrden (mano de obra).
+   - Llama a: dao.insertarOrden(o, detalles, servicios);
+
+3. Transaccionalidad en OrdenDAO.java:
+   Para garantizar la consistencia, la orden se crea dentro de una TRANSACCIÓN. Si no 
+   hay stock suficiente para algún repuesto, se cancela todo (Rollback).
+
+   [Código Java de la Transacción en OrdenDAO.java]:
+   -----------------------------------------------------------------------------
+   public void insertarOrden(OrdenTrabajo o, List<DetalleOrden> detalles, List<ServicioOrden> servicios) throws Exception {
+       String sqlOrden   = "INSERT INTO ordentrabajo (id_vehiculo_fk, doc_emple_fk, estado, descripcion, total, placa_vehiculo) VALUES (?, ?, ?, ?, ?, ?)";
+       String sqlDetalle = "INSERT INTO detalleorden (id_orden_fk, id_repuesto_fk, cantidad, subtotal) VALUES (?, ?, ?, ?)";
+       String sqlPrecio  = "SELECT nombre, stock, precio FROM producto WHERE id_producto = ?";
+       String sqlStock   = "UPDATE producto SET stock = stock - ? WHERE id_producto = ?";
+       String sqlServicio = "INSERT INTO servicioorden (id_orden_fk, id_servicio_fk, valor_cobrado) VALUES (?, ?, ?)";
+
+       Connection con = null;
+       try {
+           con = Conexion.getConexion();
+           con.setAutoCommit(false); // Inicia Transacción en MySQL
+
+           double totalOrden = 0.0;
+
+           // 1. Validar Stock y Calcular Subtotales de Repuestos
+           for (DetalleOrden d : detalles) {
+               double precioUnitario = 0.0;
+               int stockDisponible = 0;
+               String nombreProducto = "";
+
+               try (PreparedStatement psP = con.prepareStatement(sqlPrecio)) {
+                   psP.setInt(1, d.getIdProductoFk());
+                   try (ResultSet rsP = psP.executeQuery()) {
+                       if (rsP.next()) {
+                           nombreProducto  = rsP.getString("nombre");
+                           stockDisponible = rsP.getInt("stock");
+                           precioUnitario  = rsP.getDouble("precio");
+                       } else {
+                           throw new Exception("Producto no encontrado.");
+                       }
+                   }
+               }
+
+               if (d.getCantidad() > stockDisponible) {
+                   throw new Exception("Stock insuficiente para " + nombreProducto + ". Solo hay " + stockDisponible + " unidades.");
+               }
+
+               double subtotal = precioUnitario * d.getCantidad();
+               d.setSubtotal(subtotal);
+               totalOrden += subtotal;
+           }
+
+           // 2. Sumar Costo de Servicios de Mano de Obra
+           for (ServicioOrden s : servicios) {
+               if (s.getIdServicioFk() > 0 && s.getValorCobrado() >= 0) {
+                   totalOrden += s.getValorCobrado();
+               }
+           }
+           o.setTotal(totalOrden);
+
+           // 3. Insertar Cabecera de la Orden
+           try (PreparedStatement psO = con.prepareStatement(sqlOrden, Statement.RETURN_GENERATED_KEYS)) {
+               psO.setInt(1, o.getIdVehiculoFk());
+               psO.setString(2, o.getDocEmpleFk());
+               psO.setString(3, "ABIERTA");
+               psO.setString(4, o.getDescripcion());
+               psO.setDouble(5, o.getTotal());
+               psO.setString(6, o.getPlacaVehiculo());
+
+               psO.executeUpdate();
+
+               try (ResultSet rs = psO.getGeneratedKeys()) {
+                   if (rs.next()) {
+                       int idGenerado = rs.getInt(1);
+
+                       // 4. Insertar Repuestos (Batch) y Descontar Stock
+                       if (!detalles.isEmpty()) {
+                           try (PreparedStatement psD = con.prepareStatement(sqlDetalle);
+                                PreparedStatement psS = con.prepareStatement(sqlStock)) {
+                               for (DetalleOrden d : detalles) {
+                                   psD.setInt(1, idGenerado);
+                                   psD.setInt(2, d.getIdProductoFk());
+                                   psD.setInt(3, d.getCantidad());
+                                   psD.setDouble(4, d.getSubtotal());
+                                   psD.addBatch();
+
+                                   psS.setInt(1, d.getCantidad());
+                                   psS.setInt(2, d.getIdProductoFk());
+                                   psS.addBatch();
+                               }
+                               psD.executeBatch();
+                               psS.executeBatch();
+                           }
+                       }
+
+                       // 5. Insertar Servicios de Mano de Obra (Batch)
+                       try (PreparedStatement psSrv = con.prepareStatement(sqlServicio)) {
+                           for (ServicioOrden s : servicios) {
+                               if (s.getIdServicioFk() > 0 && s.getValorCobrado() >= 0) {
+                                   psSrv.setInt(1, idGenerado);
+                                   psSrv.setInt(2, s.getIdServicioFk());
+                                   psSrv.setDouble(3, s.getValorCobrado());
+                                   psSrv.addBatch();
+                               }
+                           }
+                           psSrv.executeBatch();
+                       }
+                   }
+               }
+           }
+
+           con.commit(); // Todo OK, confirmar cambios permanentes en MySQL
+       } catch (Exception e) {
+           if (con != null) {
+               try { con.rollback(); } catch (SQLException ex) { ex.printStackTrace(); } // Deshacer cambios
+           }
+           throw e;
+       } finally {
+           if (con != null) {
+               try { con.setAutoCommit(true); con.close(); } catch (SQLException e) { e.printStackTrace(); }
+           }
+       }
+   }
+   -----------------------------------------------------------------------------
+
+4. Registro en Bitácora (Seguridad):
+   Tras insertar la orden con éxito, el Servlet llama a BitacoraDAO para documentar la acción:
+   SQL: INSERT INTO bitacora (doc_emple_fk, nombre_usuario, accion, detalle) 
+        VALUES ('100234', 'Juan Mecánico', 'CREAR ORDEN', 'Se creó una nueva orden de trabajo para el vehículo con placa: AAA123');
+
+--------------------------------------------------------------------------------
+FASE 2: PROGRESO Y GESTIÓN DE LA ORDEN
+--------------------------------------------------------------------------------
+1. El mecánico actualiza la orden de trabajo según avance en el taller.
+   Estados de transición: ABIERTA -> PROCESO -> ESPERA -> TERMINADO.
+
+2. El OrdenController recibe la acción "updateStatusMecanico" (o "updateStatus" si 
+   lo hace el administrador) con el id_orden y el nuevo estado.
+
+3. OrdenDAO.java ejecuta la actualización de estado en la BD:
+   SQL: UPDATE ordentrabajo SET estado = ?, motivo_espera = ?, tiempo_espera = ? WHERE id_orden = ?;
+   
+4. Auditoría en Bitacora:
+   SQL: INSERT INTO bitacora (doc_emple_fk, nombre_usuario, accion, detalle) 
+        VALUES ('100234', 'Juan Mecánico', 'MODIFICAR ORDEN', 'Se actualizó el estado de la orden #5 a: TERMINADO');
+
+--------------------------------------------------------------------------------
+FASE 3: LIQUIDACIÓN Y FACTURACIÓN (ADMINISTRADOR)
+--------------------------------------------------------------------------------
+Cuando la orden se encuentra en estado "TERMINADO", el administrador procede al recaudo y cierre financiero.
+
+1. Vista (JSP): "admin/factura.jsp"
+   El administrador visualiza el total a cobrar, selecciona el método de pago 
+   (Efectivo, Tarjeta, Transferencia) y hace clic en "Registrar Pago". Esto envía una 
+   petición POST a OrdenController con action = "updateStatus" y nuevo_estado = "FACTURADO".
+
+2. OrdenController.java realiza los cálculos contables (IVA del 19%):
+   double total = orden.getTotal();
+   double iva = total * 0.19;        // IVA del 19% incluido en el total
+   double subtotal = total - iva;
+
+   Crea el objeto Factura y llama a FacturaDAO.insertar(f).
+
+3. Registro e inserción en FacturaDAO.java:
+   Este DAO genera automáticamente un número de factura correlativo para evitar saltos.
+
+   [Código Java en FacturaDAO.java]:
+   -----------------------------------------------------------------------------
+   public boolean insertar(Factura f) {
+       boolean registrado = false;
+       String sql = "INSERT INTO factura (id_orden_fk, doc_emple_fk, numero_factura, subtotal, iva, total, metodo_pago, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+       try (Connection con = Conexion.getConexion()) {
+           
+           // Generar número consecutivo al vuelo (FAC-0001, FAC-0002, etc.)
+           if (f.getNumeroFactura() == null || f.getNumeroFactura().trim().isEmpty()) {
+               f.setNumeroFactura(generarNumeroFactura(con));
+           }
+           
+           try (PreparedStatement ps = con.prepareStatement(sql)) {
+               ps.setInt(1, f.getIdOrdenFk());
+               ps.setString(2, f.getDocEmpleFk());
+               ps.setString(3, f.getNumeroFactura());
+               ps.setDouble(4, f.getSubtotal());
+               ps.setDouble(5, f.getIva());
+               ps.setDouble(6, f.getTotal());
+               ps.setString(7, f.getMetodoPago());
+               ps.setString(8, "PAGADA");
+               
+               registrado = ps.executeUpdate() > 0;
+           }
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+       return registrado;
+   }
+
+   private String generarNumeroFactura(Connection con) {
+       String num = "FAC-0001";
+       String sql = "SELECT COUNT(*) FROM factura";
+       try (PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+           if (rs.next()) {
+               int count = rs.getInt(1) + 1;
+               num = String.format("FAC-%04d", count);
+           }
+       } catch (Exception ignore) {}
+       return num;
+   }
+   -----------------------------------------------------------------------------
+
+4. MySQL Queries ejecutadas en este paso:
+   A) Consulta el consecutivo: SELECT COUNT(*) FROM factura;
+   B) Inserta la factura: INSERT INTO factura (id_orden_fk, numero_factura, subtotal, iva, total, metodo_pago, estado) VALUES (5, 'FAC-0003', 100840.34, 19159.66, 120000.00, 'TARJETA', 'PAGADA');
+   C) Actualiza el estado de la Orden a FACTURADO: UPDATE ordentrabajo SET estado = 'FACTURADO' WHERE id_orden = 5;
+
+5. Registro de Auditoría Financiera en Bitácora:
+   SQL: INSERT INTO bitacora (doc_emple_fk, nombre_usuario, accion, detalle) 
+        VALUES ('100123', 'Diana Administradora', 'FACTURACION', 'Se generó la factura para la orden de trabajo #5 por un total de $120000.0 (Método: TARJETA)');
+
+--------------------------------------------------------------------------------
+FASE 4: CONSULTAS NORMALIZADAS E HISTORIALES (3NF CON JOINS EN MYSQL)
+--------------------------------------------------------------------------------
+Al estar la base de datos normalizada, no se duplican nombres ni precios. Para
+reconstruir y pintar una orden o una factura en la pantalla, se ejecutan las siguientes 
+consultas relacionales combinando tablas mediante cláusulas JOIN:
+
+1. Obtener la Orden con el nombre de su Mecánico:
+   *Usa un JOIN directo con la tabla 'empleado' para traer el nombre en tiempo real.
+   SQL: 
+   SELECT o.*, h.nom_empleado AS nom_empleado 
+   FROM ordentrabajo o 
+   LEFT JOIN empleado h ON o.doc_emple_fk = h.doc_emple 
+   WHERE o.id_orden = ?;
+
+2. Detalle de Repuestos Utilizados en la Orden:
+   *Une la tabla intermedia 'detalleorden' con el catálogo 'producto'.
+   SQL: 
+   SELECT d.cantidad, d.subtotal, p.nombre, p.precio 
+   FROM detalleorden d 
+   JOIN producto p ON d.id_repuesto_fk = p.id_producto 
+   WHERE d.id_orden_fk = ?;
+
+3. Detalle de Servicios de Mano de Obra aplicados:
+   *Une la tabla intermedia 'servicioorden' con el catálogo 'servicio'.
+   SQL: 
+   SELECT so.valor_cobrado, s.nombre 
+   FROM servicioorden so 
+   JOIN servicio s ON so.id_servicio_fk = s.id_servicio 
+   WHERE so.id_orden_fk = ? 
+   ORDER BY so.id_servicio ASC;
+
+4. Obtener la Factura Emitida para la Orden:
+   SQL: 
+   SELECT * FROM factura WHERE id_orden_fk = ?;
+
+5. Listar Historial General de Facturas Emitidas (Vista Contable):
+   SQL: 
+   SELECT f.*, o.placa_vehiculo, c.nom_cliente 
+   FROM factura f 
+   JOIN ordentrabajo o ON f.id_orden_fk = o.id_orden
+   JOIN vehiculo v ON o.id_vehiculo_fk = v.id_vehiculo
+   JOIN cliente c ON v.id_cliente_fk = c.id_cliente
+   ORDER BY f.fecha_emision DESC;
+================================================================================

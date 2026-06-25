@@ -1,4 +1,4 @@
-﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="es">
@@ -45,6 +45,8 @@
             <a href="${pageContext.request.contextPath}/admin/ingreso" class="navbar__menu-item">Ingresar Pedido</a>
             <a href="${pageContext.request.contextPath}/admin/historialCompras" class="navbar__menu-item">Historial Compras</a>
             <a href="${pageContext.request.contextPath}/OrdenController?action=listAll" class="navbar__menu-item">Órdenes</a>
+
+            <a href="${pageContext.request.contextPath}/BitacoraController" class="navbar__menu-item">Auditoría</a>
         </nav>
         <div class="navbar__session">
             <div class="navbar__user-info">
@@ -66,83 +68,17 @@
             <% session.removeAttribute("mensaje"); session.removeAttribute("tipoMensaje"); %>
         </c:if>
 
-        <section id="proveedores" class="admin-section">
-            <header>
-                <h2 class="admin-section__title">Gestión de Proveedores</h2>
-                <p class="admin-section__subtitle">Administra los datos de los distribuidores de repuestos e insumos.</p>
-            </header>
-
-            <div class="admin-table-container">
-                <table class="admin-table">
-                    <thead class="admin-table__head">
-                        <tr>
-                            <th class="admin-table__th">ID</th>
-                            <th class="admin-table__th">Empresa / Nombre</th>
-                            <th class="admin-table__th">Contacto</th>
-                            <th class="admin-table__th">Teléfono</th>
-                            <th class="admin-table__th">Correo</th>
-                            <th class="admin-table__th">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty requestScope.listaProveedores}">
-                                <c:forEach var="prov" items="${requestScope.listaProveedores}">
-                                    <tr class="admin-table__row">
-                                        <td class="admin-table__td">
-                                            <c:out value="${prov.idProveedor}" />
-                                        </td>
-                                        <td class="admin-table__td" style="font-weight:bold; color:var(--accent-light);">
-                                            <c:out value="${prov.nombreProveedor}" />
-                                        </td>
-                                        <td class="admin-table__td">
-                                            ${not empty prov.contacto ? prov.contacto : '<span style="opacity:0.5;">No registrado</span>'}
-                                        </td>
-                                        <td class="admin-table__td">
-                                            ${not empty prov.telefono ? prov.telefono : '<span style="opacity:0.5;">No registrado</span>'}
-                                        </td>
-                                        <td class="admin-table__td">
-                                            ${not empty prov.correo ? prov.correo : '<span style="opacity:0.5;">No registrado</span>'}
-                                        </td>
-                                        <td class="admin-table__td">
-                                            <div class="admin-table__actions">
-                                                <a href="${pageContext.request.contextPath}/ProveedorController?action=edit&id=${prov.idProveedor}#formProveedor"
-                                                    class="admin-action-btn admin-action-btn--edit"
-                                                    title="Editar">✏️ Editar</a>
-                                                <a href="#deleteModal${prov.idProveedor}" class="admin-action-btn admin-action-btn--delete"
-                                                    title="Eliminar">🗑️ Eliminar</a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr class="admin-table__row">
-                                    <td class="admin-table__td" colspan="6" style="text-align: center;">No hay proveedores registrados.</td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-
-            <article id="formProveedor" class="admin-form-section">
-                <h3 class="admin-form-section__title">${not empty requestScope.proveedorEditar ? 'Editar Proveedor' : 'Registrar Nuevo Proveedor'}</h3>
-                <form class="admin-form" action="${pageContext.request.contextPath}/ProveedorController" method="post">
-                    
-                    <input type="hidden" name="action" value="${not empty requestScope.proveedorEditar ? 'update' : 'insert'}">
-                    <c:if test="${not empty requestScope.proveedorEditar}">
-                        <input type="hidden" name="id_proveedor" value="${requestScope.proveedorEditar.idProveedor}">
-                    </c:if>
 
                     <div class="admin-form__group">
                         <label class="admin-form__label" for="nombre_proveedor">Empresa / Nombre (*):</label>
+                        <!-- Aquí renderizamos el input para capturar el nombre de la empresa proveedora -->
                         <input class="admin-form__input" type="text" id="nombre_proveedor" name="nombre_proveedor" required
                             placeholder="Ej: Repuestos El Chamo" value="${requestScope.proveedorEditar.nombreProveedor}">
                     </div>
 
                     <div class="admin-form__group">
                         <label class="admin-form__label" for="contacto">Nombre del Contacto:</label>
+                        <!-- Aquí renderizamos el input para el nombre del contacto principal del proveedor -->
                         <input class="admin-form__input" type="text" id="contacto" name="contacto"
                             placeholder="Ej: Juan Pérez" value="${requestScope.proveedorEditar.contacto}">
                     </div>
@@ -178,11 +114,13 @@
     </main>
 
     <!-- Modales de Eliminación -->
+    <%-- Aquí iteramos a través de la lista de proveedores para generar los modales de eliminación correspondientes --%>
     <c:forEach var="prov" items="${requestScope.listaProveedores}">
         <div id="deleteModal${prov.idProveedor}" class="modal-css">
             <div class="modal-content-css">
                 <h2>¿Eliminar Proveedor?</h2>
                 <p>Estás a punto de eliminar a <strong>${prov.nombreProveedor}</strong>.<br>Esta acción no se puede deshacer.</p>
+                <%-- Aquí renderizamos el formulario que ejecuta un POST para eliminar a este proveedor específico --%>
                 <form action="${pageContext.request.contextPath}/ProveedorController" method="post" class="modal-buttons-css">
                     <input type="hidden" name="action" value="delete">
                     <input type="hidden" name="id_proveedor" value="${prov.idProveedor}">

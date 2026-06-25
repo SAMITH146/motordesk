@@ -4,15 +4,25 @@ package com.mycompany.motordesk.model;
 // Importación de dependencias y clases necesarias
 import java.sql.Date;
 
-// Clase pública Empleado que gestiona la lógica correspondiente
+/**
+ * Clase pública Empleado que representa a los trabajadores registrados en el sistema (mecánicos, administradores, etc.).
+ * Almacena información personal, credenciales de acceso y roles dentro del taller.
+ */
 public class Empleado {
 
-    private String idEmpleado;     // doc_emple
-    private String nombre;       // nom_empleado
-    private String pin;          // pin_acceso
+    // Documento de identidad del empleado, usado como identificador único (llave primaria)
+    private String idEmpleado;     
+    // Nombre completo del empleado
+    private String nombre;       
+    // PIN o contraseña de acceso al sistema
+    private String pin;          
+    // Identificador del rol del empleado (ej. Administrador, Mecánico) para control de permisos (llave foránea)
     private int idRol;
+    // Identificador del cargo específico que ocupa en el taller (llave foránea)
     private int idCargo;
+    // Estado actual del empleado en la empresa (ej. 'Activo', 'Inactivo')
     private String estadoEmpleado;
+    // Fecha en la que el empleado ingresó a trabajar al taller
     private Date fechaIngreso;
 
     // Constructor por defecto (vacío)

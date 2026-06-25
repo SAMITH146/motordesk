@@ -1,14 +1,24 @@
 // Definición del paquete del proyecto
 package com.mycompany.motordesk.model;
 
-// Clase pública Producto que gestiona la lógica correspondiente
+/**
+ * Clase pública Producto que representa los repuestos o insumos físicos del inventario del taller.
+ * Contiene información sobre su nombre, cantidad disponible (stock), precio y categoría.
+ */
 public class Producto {
+    // Identificador único del producto en la base de datos (llave primaria)
     private int idProducto;
+    // Nombre descriptivo del producto o repuesto
     private String nombreProducto;
+    // Cantidad actual de unidades disponibles en el inventario del taller
     private int stock;
+    // Precio de venta al público por cada unidad del producto
     private double precioUnitario;
+    // Estado actual del producto (ej. 'Activo', 'Inactivo', 'Agotado')
     private String estado;
+    // Tipo de vehículo para el que es compatible el producto (Moto, Carro, etc.)
     private String tipoVehiculo;
+    // Sección o categoría a la que pertenece el producto dentro del inventario
     private String seccion;
 
     // Constructor por defecto (vacío)

@@ -1,11 +1,11 @@
-// Este archivo pertenece al paquete "dao" — la capa que habla directamente con MySQL
+// Comenzamos con nuestro archivo que pertenece al paquete "dao" — la capa donde nosotros nos comunicamos directamente con MySQL
 package com.mycompany.motordesk.dao;
 
-// Importamos la clase que nos da la conexión a MySQL (usuario, contraseña, URL de la BD)
+// Importamos la clase que nos brinda la conexión a nuestra base de datos MySQL
 import com.mycompany.motordesk.config.Conexion;
-// Importamos el modelo Cliente para poder convertir filas de BD en objetos Java
+// Importamos nuestro modelo Cliente para poder convertir las filas de nuestra BD en objetos Java
 import com.mycompany.motordesk.model.Cliente;
-// Clases estándar de Java para trabajar con bases de datos
+// A continuación, importamos las clases estándar de Java para trabajar con nuestras bases de datos
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,120 +13,129 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-// Clase que contiene todos los métodos para leer y escribir clientes en MySQL
+/**
+ * En esta parte, tenemos nuestra Clase de Acceso a Datos (DAO) para los Clientes.
+ * Aquí definimos los métodos para que nosotros podamos leer, insertar y actualizar nuestros registros de clientes.
+ */
 public class ClienteDAO {
 
-    // -----------------------------------------------------------------------
-    // MÉTODO: insertar — Guarda un cliente nuevo en la base de datos
-    // Retorna el ID que MySQL le asignó automáticamente (AUTO_INCREMENT)
-    // -----------------------------------------------------------------------
+    /**
+     * Con este método, nosotros guardamos un cliente nuevo en nuestra base de datos.
+     * @param cliente Objeto Cliente con los datos que vamos a insertar.
+     * @return El ID numérico que MySQL nos asigna, o -1 si tenemos algún fallo.
+     */
     public int insertar(Cliente cliente) {
-        // Empezamos con -1; si algo falla, retornaremos este valor como señal de error
+        // Inicializamos con -1; si algo nos falla, retornaremos este valor como señal de error
         int idGenerado = -1;
 
-        // La consulta SQL con '?' como marcadores de posición — NUNCA concatenamos texto
-        // directamente porque eso abre la puerta a ataques de inyección SQL
+        // Escribimos nuestra consulta SQL usando '?' como marcadores de posición — nosotros NUNCA concatenamos texto
+        // directamente porque queremos proteger nuestro sistema de ataques de inyección SQL
         String sql = "INSERT INTO cliente (nom_cliente, doc_cliente, direccion_cliente) VALUES (?, ?, ?)";
 
-        // try-with-resources: Java cierra la conexión automáticamente al terminar, sin importar si hubo error
-        // RETURN_GENERATED_KEYS le pide a MySQL que nos devuelva el ID que generó
+        // Con try-with-resources, Java nos cierra la conexión automáticamente al terminar
+        // Con RETURN_GENERATED_KEYS, nosotros le pedimos a MySQL que nos devuelva el ID que acaba de generar
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            // Reemplazamos cada '?' con el valor real del cliente
-            ps.setString(1, cliente.getNombre());   // Primer '?' = nombre
-            ps.setString(2, cliente.getDocumento()); // Segundo '?' = documento
-            ps.setString(3, cliente.getDireccion()); // Tercer '?' = dirección
+            // Reemplazamos cada '?' con el valor real de nuestro cliente
+            ps.setString(1, cliente.getNombre());   // Nuestro primer '?' es el nombre
+            ps.setString(2, cliente.getDocumento()); // Nuestro segundo '?' es el documento
+            ps.setString(3, cliente.getDireccion()); // Nuestro tercer '?' es la dirección
 
-            // executeUpdate() ejecuta el INSERT y retorna cuántas filas afectó (esperamos 1)
+            // Ejecutamos nuestro INSERT y verificamos cuántas filas afectamos (esperamos que sea 1)
             if (ps.executeUpdate() > 0) {
-                // Leemos el ID que MySQL generó automáticamente para este nuevo cliente
+                // Procedemos a leer el ID que MySQL nos generó automáticamente
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         idGenerado = rs.getInt(1); // Guardamos ese ID en nuestra variable
-                        cliente.setIdCliente(idGenerado); // También lo guardamos en el objeto
+                        cliente.setIdCliente(idGenerado); // Y también lo guardamos en nuestro objeto
                     }
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Si algo falla, imprimimos el error en la consola del servidor
+            e.printStackTrace(); // Si algo nos falla, imprimimos el error en la consola de nuestro servidor
         }
 
-        return idGenerado; // Devolvemos el ID generado (o -1 si falló)
+        return idGenerado; // Finalmente, devolvemos nuestro ID generado (o -1 si algo salió mal)
     }
 
-    // -----------------------------------------------------------------------
-    // MÉTODO: obtenerPorDocumento — Busca un cliente por su número de cédula/documento
-    // Lo usamos al crear una orden para saber si el cliente ya existe en el sistema
-    // -----------------------------------------------------------------------
+    /**
+     * Aquí nosotros buscamos un cliente usando su número de cédula o documento.
+     * Esto nos resulta esencial al crear una orden para verificar si nuestro cliente ya existe en el sistema.
+     * @param documento Documento de identidad de nuestro cliente.
+     * @return El objeto Cliente que encontramos, o null si no existe en nuestros registros.
+     */
     public Cliente obtenerPorDocumento(String documento) {
-        Cliente c = null; // Si no encontramos nada, retornaremos null
+        Cliente c = null; // Si no encontramos a nadie, nosotros retornaremos null
 
-        // Buscamos en la tabla cliente el registro que tenga este documento
+        // Buscamos en nuestra tabla cliente el registro que coincida con este documento
         String sql = "SELECT * FROM cliente WHERE doc_cliente = ?";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, documento); // Reemplazamos el '?' con el documento buscado
+            ps.setString(1, documento); // Reemplazamos nuestro '?' con el documento que estamos buscando
 
             try (ResultSet rs = ps.executeQuery()) {
-                // Si encontramos una fila que coincide, construimos el objeto Cliente con esos datos
+                // Si encontramos una coincidencia, nosotros construimos nuestro objeto Cliente con esos datos
                 if (rs.next()) {
                     c = new Cliente(
-                        rs.getInt("id_cliente"),          // Leemos la columna id_cliente
-                        rs.getString("nom_cliente"),       // Leemos la columna nom_cliente
-                        rs.getString("doc_cliente"),       // Leemos la columna doc_cliente
-                        rs.getString("direccion_cliente")  // Leemos la columna direccion_cliente
+                        rs.getInt("id_cliente"),          // Leemos nuestra columna id_cliente
+                        rs.getString("nom_cliente"),       // Leemos nuestra columna nom_cliente
+                        rs.getString("doc_cliente"),       // Leemos nuestra columna doc_cliente
+                        rs.getString("direccion_cliente")  // Leemos nuestra columna direccion_cliente
                     );
                 }
-                // Si no hay ninguna fila, 'c' sigue siendo null — el llamador lo maneja
+                // Si no hay filas, nuestra 'c' sigue siendo null — y así lo manejamos al retornar
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return c; // Retornamos el objeto Cliente encontrado (o null si no existe)
+        return c; // Retornamos el objeto Cliente que encontramos (o null si no lo hallamos)
     }
 
-    // -----------------------------------------------------------------------
-    // MÉTODO: actualizar — Modifica los datos de un cliente ya existente en la BD
-    // Lo usamos cuando un cliente vuelve pero cambió su nombre o dirección
-    // -----------------------------------------------------------------------
+    /**
+     * En este paso, nosotros modificamos los datos de un cliente que ya tenemos en nuestra base de datos.
+     * Por ejemplo, nos sirve si nuestro cliente regresa pero cambió de dirección.
+     * @param cliente Objeto Cliente con la información que acabamos de actualizar.
+     * @return true si logramos la actualización con éxito, false en caso contrario.
+     */
     public boolean actualizar(Cliente cliente) {
-        // Solo actualizamos nombre y dirección — el documento es nuestra clave de búsqueda (no cambia)
+        // Nosotros solo actualizamos el nombre y la dirección — el documento es nuestra clave de búsqueda
         String sql = "UPDATE cliente SET nom_cliente = ?, direccion_cliente = ? WHERE doc_cliente = ?";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setString(1, cliente.getNombre());    // Nuevo nombre
-            ps.setString(2, cliente.getDireccion()); // Nueva dirección
-            ps.setString(3, cliente.getDocumento()); // Documento para el WHERE (identificador)
+            ps.setString(1, cliente.getNombre());    // El nuevo nombre que ingresamos
+            ps.setString(2, cliente.getDireccion()); // La nueva dirección que ingresamos
+            ps.setString(3, cliente.getDocumento()); // El documento para nuestro WHERE
 
-            // executeUpdate() > 0 significa que sí se modificó al menos una fila — retornamos true
+            // Si ps.executeUpdate() > 0, significa que nosotros modificamos al menos una fila, así que retornamos true
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
-            return false; // Si hubo error, retornamos false
+            return false; // Si tuvimos un error, nosotros retornamos false
         }
     }
 
-    // -----------------------------------------------------------------------
-    // MÉTODO: listarTodos — Trae TODOS los clientes de la BD para mostrarlos en la tabla
-    // -----------------------------------------------------------------------
+    /**
+     * Aquí, nosotros obtenemos una lista con TODOS los clientes que tenemos registrados en la base de datos.
+     * @return Nuestra lista completa de clientes.
+     */
     public List<Cliente> listarTodos() {
-        // Creamos una lista vacía donde iremos acumulando los clientes que encontremos
+        // Empezamos creando una lista vacía donde nosotros iremos acumulando los clientes que encontremos
         List<Cliente> lista = new ArrayList<>();
-        String sql = "SELECT * FROM cliente"; // Sin filtros — traemos todos los registros
+        String sql = "SELECT * FROM cliente"; // Sin filtros — nosotros traemos todos los registros
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) { // Ejecutamos la consulta directamente
+             ResultSet rs = ps.executeQuery()) { // Ejecutamos nuestra consulta directamente
 
-            // Recorremos cada fila del resultado con un bucle while
+            // Recorremos cada fila de nuestro resultado con un bucle while
             while (rs.next()) {
-                // Por cada fila, creamos un objeto Cliente y lo agregamos a la lista
+                // Por cada fila, nosotros creamos un objeto Cliente y lo agregamos a nuestra lista
                 lista.add(new Cliente(
                     rs.getInt("id_cliente"),
                     rs.getString("nom_cliente"),
@@ -138,27 +147,29 @@ public class ClienteDAO {
             e.printStackTrace();
         }
 
-        return lista; // Devolvemos la lista completa de clientes
+        return lista; // Devolvemos nuestra lista completa de clientes
     }
 
-    // -----------------------------------------------------------------------
-    // MÉTODO: obtenerPorId — Busca un cliente por su ID numérico interno de la BD
-    // Lo usa la factura: Orden → Vehículo → id_cliente_fk → aquí buscamos el cliente
-    // -----------------------------------------------------------------------
+    /**
+     * Mediante este método, nosotros buscamos un cliente usando su ID numérico interno.
+     * Lo usamos internamente (ej. Factura -> Orden -> Vehículo -> id_cliente_fk).
+     * @param id Identificador numérico de nuestro cliente.
+     * @return El objeto Cliente que encontramos, o null si no lo hallamos.
+     */
     public Cliente obtenerPorId(int id) {
-        Cliente c = null; // Valor por defecto: no encontrado
+        Cliente c = null; // Por defecto asumimos que no lo encontramos
 
-        // El '?' será reemplazado por el ID que nos pasen como parámetro
+        // Reemplazaremos nuestro '?' por el ID que nos pasen como parámetro
         String sql = "SELECT * FROM cliente WHERE id_cliente = ?";
 
         try (Connection con = Conexion.getConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-            ps.setInt(1, id); // Ponemos el ID en el lugar del '?'
+            ps.setInt(1, id); // Colocamos nuestro ID en el lugar del '?'
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) { // Si encontramos al cliente con ese ID
-                    c = new Cliente( // Construimos el objeto con los datos de la BD
+                if (rs.next()) { // Si nosotros encontramos al cliente con ese ID
+                    c = new Cliente( // Construimos nuestro objeto con los datos de la BD
                         rs.getInt("id_cliente"),
                         rs.getString("nom_cliente"),
                         rs.getString("doc_cliente"),
@@ -170,6 +181,6 @@ public class ClienteDAO {
             e.printStackTrace();
         }
 
-        return c; // Retornamos el cliente (o null si no existe ese ID)
+        return c; // Retornamos a nuestro cliente (o null si ese ID no existe)
     }
 }

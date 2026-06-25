@@ -84,6 +84,7 @@
                     </div>
                     <div class="scroll-list">
                         <c:choose>
+                            <%-- Bucle que itera sobre la listaOrdenes asignadas al mecánico para mostrarlas en su panel rápido --%>
                             <c:when test="${not empty requestScope.listaOrdenes}">
                                 <c:forEach var="ord" items="${requestScope.listaOrdenes}">
                                     <div class="order-mini-card">
@@ -170,6 +171,8 @@
                 </c:choose>
             </header>
 
+            <!-- Formulario principal para que el mecánico abra o edite una orden de trabajo -->
+            <%-- Envía los datos de cliente, vehículo, servicios y repuestos al OrdenController mediante el método POST --%>
             <div class="admin-card" style="max-width: 750px;">
                 <form action="${pageContext.request.contextPath}/OrdenController" method="post" class="admin-form" id="orderForm">
                     <input type="hidden" name="action" value="${not empty requestScope.ordenEditar ? 'update' : 'insert'}" />
@@ -184,17 +187,20 @@
                         <div class="form-group">
                             <label class="form-label">Documento (Cédula)</label>
                             <input type="text" name="doc_cliente" class="form-input" placeholder="Ej: 123456789" required
+                                value="${not empty requestScope.clienteEditar ? requestScope.clienteEditar.documento : ''}"
                                 pattern="\d+" minlength="6" maxlength="15" title="Solo números" oninput="this.value = this.value.replace(/[^0-9]/g, '')" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">Nombre Completo</label>
                             <input type="text" name="nom_cliente" class="form-input" placeholder="Nombres y Apellidos" required 
+                                value="${not empty requestScope.clienteEditar ? requestScope.clienteEditar.nombre : ''}"
                                 pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$" title="Solo letras y espacios" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')" />
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Dirección</label>
-                        <input type="text" name="direccion_cliente" class="form-input" placeholder="Ej: Calle 123 #45-67" required />
+                        <input type="text" name="direccion_cliente" class="form-input" placeholder="Ej: Calle 123 #45-67" required 
+                            value="${not empty requestScope.clienteEditar ? requestScope.clienteEditar.direccion : ''}" />
                     </div>
 
                     <!-- DATOS DEL VEHÍCULO -->
@@ -206,16 +212,31 @@
                                 maxlength="7" oninput="this.value = this.value.toUpperCase()" />
                         </div>
                         <div class="form-group">
+                            <label class="form-label">Tipo de Vehículo</label>
+                            <select name="tipo_vehiculo" class="form-input" required>
+                                <option value="">-- Seleccionar Tipo --</option>
+                                <option value="Moto" ${not empty requestScope.vehiculoEditar and requestScope.vehiculoEditar.tipoVehiculo == 'Moto' ? 'selected' : ''}>🏍️ Moto</option>
+                                <option value="Carro" ${not empty requestScope.vehiculoEditar and requestScope.vehiculoEditar.tipoVehiculo == 'Carro' ? 'selected' : ''}>🚗 Carro</option>
+                                <option value="Camioneta" ${not empty requestScope.vehiculoEditar and requestScope.vehiculoEditar.tipoVehiculo == 'Camioneta' ? 'selected' : ''}>🛻 Camioneta</option>
+                                <option value="Camion" ${not empty requestScope.vehiculoEditar and requestScope.vehiculoEditar.tipoVehiculo == 'Camion' ? 'selected' : ''}>🚛 Camión</option>
+                                <option value="Otro" ${not empty requestScope.vehiculoEditar and requestScope.vehiculoEditar.tipoVehiculo == 'Otro' ? 'selected' : ''}>⚙️ Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label class="form-label">Marca</label>
-                            <input type="text" name="marca" class="form-input" placeholder="Ej: Chevrolet" required />
+                            <input type="text" name="marca" class="form-input" placeholder="Ej: Chevrolet" required 
+                                value="${not empty requestScope.vehiculoEditar ? requestScope.vehiculoEditar.marca : ''}" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">Modelo</label>
-                            <input type="text" name="modelo" class="form-input" placeholder="Ej: Spark" required />
+                            <input type="text" name="modelo" class="form-input" placeholder="Ej: Spark" required 
+                                value="${not empty requestScope.vehiculoEditar ? requestScope.vehiculoEditar.modelo : ''}" />
                         </div>
                         <div class="form-group">
                             <label class="form-label">Año</label>
-                            <input type="number" name="anio" class="form-input" placeholder="Ej: 2018" required min="1900" max="<%= java.time.Year.now().getValue() %>" title="El modelo no puede ser mayor al año actual" />
+                            <input type="number" name="anio" class="form-input" placeholder="Ej: 2018" required 
+                                value="${not empty requestScope.vehiculoEditar ? requestScope.vehiculoEditar.anio : ''}"
+                                min="1900" max="<%= java.time.Year.now().getValue() %>" title="El modelo no puede ser mayor al año actual" />
                         </div>
                     </div>
 
@@ -230,14 +251,18 @@
                             <c:when test="${not empty requestScope.serviciosEditar}">
                                 <c:forEach var="srv" items="${requestScope.serviciosEditar}" varStatus="loop">
                                 <div class="servicio-row" style="display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;">
-                                    <input type="text" name="servicios[]" class="form-input"
-                                           placeholder="Ej: Despinche llanta trasera"
-                                           value="${srv.nombre}"
-                                           ${loop.index == 0 ? 'required' : ''}
-                                           style="font-size:0.9rem;" />
-                                    <input type="number" name="valoresServicio[]" class="form-input"
-                                           placeholder="Valor $" min="0" step="100"
-                                           value="${srv.valor}"
+                                    <select name="servicios[]" class="form-input" onchange="actualizarPrecioEstandar(this)"
+                                            ${loop.index == 0 ? 'required' : ''} style="font-size:0.9rem;">
+                                        <option value="">-- Seleccione un servicio --</option>
+                                        <c:forEach var="s" items="${listaServicios}">
+                                            <option value="${s.idServicio}" data-precio="${s.precioEstandar}" ${s.idServicio == srv.idServicioFk ? 'selected' : ''}>
+                                                ${s.nombre} (Estándar: $${s.precioEstandar})
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                    <input type="text" name="valoresServicio[]" class="form-input"
+                                           placeholder="Valor $"
+                                           value="${srv.valorCobrado}"
                                            style="font-size:0.9rem;" />
                                     <c:if test="${loop.index > 0}">
                                         <button type="button" onclick="eliminarServicio(this)"
@@ -252,11 +277,16 @@
                             <c:otherwise>
                                 <%-- Fila inicial vacía para nuevas órdenes --%>
                                 <div class="servicio-row" style="display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;">
-                                    <input type="text" name="servicios[]" class="form-input"
-                                           placeholder="Ej: Despinche llanta trasera" required
-                                           style="font-size:0.9rem;" />
-                                    <input type="number" name="valoresServicio[]" class="form-input"
-                                           placeholder="Valor $" min="0" step="100"
+                                    <select name="servicios[]" class="form-input" required onchange="actualizarPrecioEstandar(this)" style="font-size:0.9rem;">
+                                        <option value="">-- Seleccione un servicio --</option>
+                                        <c:forEach var="s" items="${listaServicios}">
+                                            <option value="${s.idServicio}" data-precio="${s.precioEstandar}">
+                                                ${s.nombre} (Estándar: $${s.precioEstandar})
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                    <input type="text" name="valoresServicio[]" class="form-input"
+                                           placeholder="Valor $"
                                            style="font-size:0.9rem;" />
                                     <span style="width:34px;"></span>
                                 </div>
@@ -278,20 +308,53 @@
                     <div class="form-group">
                         <label class="form-label">Productos Utilizados</label>
                         <div id="repu-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
-                            <c:forEach begin="0" end="4" var="i">
-                            <c:set var="det" value="${requestScope.detallesEditar[i]}" />
-                            <div class="repu-row" style="display:grid; grid-template-columns:2fr 1fr; gap:10px; align-items:center;">
-                                <select name="productos[]" class="form-input">
-                                    <option value="">-- Seleccionar Repuesto --</option>
-                                    <c:forEach var="p" items="${requestScope.listaProductos}">
-                                        <option value="${p.idProducto}" ${not empty det and det.idProductoFk == p.idProducto ? 'selected' : ''}>${p.nombreProducto} - $<fmt:formatNumber value="${p.precioUnitario}" pattern="###,##0.00"/></option>
+
+                            <%-- Si hay detalles existentes (edición de orden), renderizarlos --%>
+                            <c:choose>
+                                <c:when test="${not empty requestScope.detallesEditar}">
+                                    <c:forEach var="det" items="${requestScope.detallesEditar}">
+                                        <div class="repu-row" style="display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;">
+                                            <select name="productos[]" class="form-input">
+                                                <option value="">-- Seleccionar Repuesto --</option>
+                                                <c:forEach var="p" items="${requestScope.listaProductos}">
+                                                    <option value="${p.idProducto}" ${det.idProductoFk == p.idProducto ? 'selected' : ''}>${p.nombreProducto} - $<fmt:formatNumber value="${p.precioUnitario}" pattern="###,##0.00"/></option>
+                                                </c:forEach>
+                                            </select>
+                                            <input type="number" name="cantidades[]" class="form-input" min="1" placeholder="Cant." value="${det.cantidad}" />
+                                            <input type="hidden" name="precios[]" value="0" />
+                                            <button type="button" onclick="eliminarRepuesto(this)"
+                                                style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);
+                                                       color:#ef4444;border-radius:8px;padding:6px 10px;cursor:pointer;
+                                                       font-size:1rem;line-height:1;">🗑</button>
+                                        </div>
                                     </c:forEach>
-                                </select>
-                                <input type="number" name="cantidades[]" class="form-input" min="1" placeholder="Cant." value="${not empty det ? det.cantidad : ''}" />
-                                <input type="hidden" name="precios[]" value="0" />
-                            </div>
-                            </c:forEach>
+                                </c:when>
+                                <c:otherwise>
+                                    <%-- Orden nueva: una fila vacía inicial --%>
+                                    <div class="repu-row" style="display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;">
+                                        <select name="productos[]" class="form-input">
+                                            <option value="">-- Seleccionar Repuesto --</option>
+                                            <c:forEach var="p" items="${requestScope.listaProductos}">
+                                                <option value="${p.idProducto}">${p.nombreProducto} - $<fmt:formatNumber value="${p.precioUnitario}" pattern="###,##0.00"/></option>
+                                            </c:forEach>
+                                        </select>
+                                        <input type="number" name="cantidades[]" class="form-input" min="1" placeholder="Cant." />
+                                        <input type="hidden" name="precios[]" value="0" />
+                                        <button type="button" onclick="eliminarRepuesto(this)"
+                                            style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);
+                                                   color:#ef4444;border-radius:8px;padding:6px 10px;cursor:pointer;
+                                                   font-size:1rem;line-height:1;">🗑</button>
+                                    </div>
+                                </c:otherwise>
+                            </c:choose>
+
                         </div>
+                        <button type="button" onclick="agregarRepuesto()"
+                                style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;
+                                       border-radius:8px;padding:7px 14px;cursor:pointer;font-size:0.85rem;
+                                       margin-bottom:1rem;transition:all .2s;">
+                            ➕ Agregar repuesto
+                        </button>
                     </div>
 
                     <div style="display:flex; gap: 1rem; margin-top: 0.5rem;">
@@ -312,7 +375,9 @@
             <div class="admin-card">
                 <c:choose>
                     <c:when test="${not empty requestScope.listaProductos}">
+                        <!-- Cuadrícula que muestra el inventario actual de repuestos -->
                         <div class="product-grid">
+                            <%-- Bucle que recorre la listaProductos y genera una tarjeta para cada uno --%>
                             <c:forEach var="p" items="${requestScope.listaProductos}">
                                 <div class="product-card ${p.stock < 5 ? 'product-card--low' : ''}">
                                     <div class="product-card__icon">&#128230;</div>
@@ -353,6 +418,23 @@
 
     <script>
         // ===== SERVICIOS DINÁMICOS =====
+        
+        var optionsHtml = '<option value="">-- Seleccione un servicio --</option>' +
+            '<c:forEach var="s" items="${listaServicios}">' +
+                '<option value="${s.idServicio}" data-precio="${s.precioEstandar}">${s.nombre} (Estándar: $${s.precioEstandar})</option>' +
+            '</c:forEach>';
+
+        function actualizarPrecioEstandar(select) {
+            var option = select.options[select.selectedIndex];
+            var precio = option ? option.getAttribute('data-precio') : 0;
+            var row = select.closest('.servicio-row');
+            if (row) {
+                var valInput = row.querySelector('input[name="valoresServicio[]"]');
+                if (valInput) {
+                    valInput.value = precio || '';
+                }
+            }
+        }
 
         // Agrega una nueva fila de servicio al contenedor
         function agregarServicio() {
@@ -361,17 +443,17 @@
             fila.className = 'servicio-row';
             fila.style.cssText = 'display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;';
             fila.innerHTML =
-                '<input type="text" name="servicios[]" class="form-input" ' +
-                '       placeholder="Ej: Revisión de suspensión" style="font-size:0.9rem;" />' +
-                '<input type="number" name="valoresServicio[]" class="form-input" ' +
-                '       placeholder="Valor $" min="0" step="100" style="font-size:0.9rem;" />' +
+                '<select name="servicios[]" class="form-input" style="font-size:0.9rem;" onchange="actualizarPrecioEstandar(this)">' +
+                optionsHtml +
+                '</select>' +
+                '<input type="text" name="valoresServicio[]" class="form-input" ' +
+                '       placeholder="Valor $" style="font-size:0.9rem;" />' +
                 '<button type="button" onclick="eliminarServicio(this)" ' +
                 '        style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);' +
                 '               color:#ef4444;border-radius:8px;padding:6px 10px;cursor:pointer;' +
                 '               font-size:1rem;line-height:1;">🗑</button>';
             container.appendChild(fila);
-            // Foco en el nuevo campo de nombre
-            fila.querySelector('input[name="servicios[]"]').focus();
+            fila.querySelector('select[name="servicios[]"]').focus();
         }
 
         // Elimina la fila de servicio correspondiente
@@ -380,15 +462,53 @@
             if (fila) fila.remove();
         }
 
-        // Al enviar el formulario, genera automáticamente el campo descripcion
+        // ===== REPUESTOS DINÁMICOS =====
+
+        // Construir el HTML de opciones de productos para reutilizarlo en nuevas filas
+        var repuestoOptionsHtml = '<option value="">-- Seleccionar Repuesto --</option>' +
+            '<c:forEach var="p" items="${requestScope.listaProductos}">' +
+                '<option value="${p.idProducto}">${p.nombreProducto} - $<fmt:formatNumber value="${p.precioUnitario}" pattern="###,##0.00"/></option>' +
+            '</c:forEach>';
+
+        function agregarRepuesto() {
+            var container = document.getElementById('repu-container');
+            var fila = document.createElement('div');
+            fila.className = 'repu-row';
+            fila.style.cssText = 'display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:center;';
+            fila.innerHTML =
+                '<select name="productos[]" class="form-input">' +
+                repuestoOptionsHtml +
+                '</select>' +
+                '<input type="number" name="cantidades[]" class="form-input" min="1" placeholder="Cant." />' +
+                '<input type="hidden" name="precios[]" value="0" />' +
+                '<button type="button" onclick="eliminarRepuesto(this)" ' +
+                '        style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);' +
+                '               color:#ef4444;border-radius:8px;padding:6px 10px;cursor:pointer;' +
+                '               font-size:1rem;line-height:1;">🗑</button>';
+            container.appendChild(fila);
+            fila.querySelector('select[name="productos[]"]').focus();
+        }
+
+        function eliminarRepuesto(btn) {
+            var fila = btn.closest('.repu-row');
+            // Mantener al menos una fila para no dejar el formulario sin repuestos
+            var container = document.getElementById('repu-container');
+            if (container.querySelectorAll('.repu-row').length > 1) {
+                fila.remove();
+            }
+        }
+
         // como resumen legible de todos los servicios (para mantener compatibilidad con el campo descripcion de BD)
         var orderForm = document.getElementById('orderForm');
         if (orderForm) {
             orderForm.addEventListener('submit', function() {
-                var inputs = document.querySelectorAll('#servicios-container input[name="servicios[]"]');
+                var selects = document.querySelectorAll('#servicios-container select[name="servicios[]"]');
                 var nombres = [];
-                inputs.forEach(function(inp) {
-                    if (inp.value.trim()) nombres.push(inp.value.trim());
+                selects.forEach(function(sel) {
+                    var option = sel.options[sel.selectedIndex];
+                    if (option && option.value) {
+                        nombres.push(option.text.split(' (')[0]);
+                    }
                 });
                 var resumen = nombres.length > 0 ? nombres.join(' | ') : 'Servicio general';
                 document.getElementById('descripcionResumen').value = resumen;

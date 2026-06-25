@@ -1,8 +1,10 @@
 // Este archivo pertenece al paquete "model" — la capa que representa los datos del negocio
 package com.mycompany.motordesk.model;
 
-// Clase Cliente: representa una fila de la tabla "cliente" en MySQL
-// Cada atributo corresponde a una columna de la tabla
+/**
+ * Clase Cliente: representa una fila de la tabla "cliente" en la base de datos MySQL.
+ * Se encarga de almacenar y transportar la información personal de los clientes registrados en el taller.
+ */
 public class Cliente {
 
     // ID único generado automáticamente por la base de datos (AUTO_INCREMENT)
